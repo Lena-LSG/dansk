@@ -705,22 +705,26 @@ function renderHome(){
   $('bank-count').textContent=Q.length||'—';
 
   const streak=checkStreak();
-  $('streak-bar').style.display=streak>0?'flex':'none';
-  if(streak>0)$('streak-txt').textContent=da?`${streak} dag${streak>1?'e':''} i træk 🔥`:`${streak} day streak 🔥`;
+  if(!isDesktop()){
+    $('streak-bar').style.display=streak>0?'flex':'none';
+    if(streak>0)$('streak-txt').textContent=da?`${streak} dag${streak>1?'e':''} i træk 🔥`:`${streak} day streak 🔥`;
+  }
   const tbStreak=$('tb-streak');
   if(tbStreak){tbStreak.classList.toggle('on',streak>0);if(streak>0)$('tb-streak-txt').textContent=da?`${streak} dag${streak>1?'e':''} i træk`:`${streak} day${streak!==1?'s':''} streak`;}
   $('tb-sub')&&($('tb-sub').textContent=da?'Indfødsretsprøven Forberedelse':'Citizenship Test Prep');
   renderWelcome();
 
   const p=progressCache, hasSeen=Object.keys(p).length>0;
-  $('h-mastery-lbl').style.display=hasSeen?'block':'none';
-  $('mastery-grid').style.display=hasSeen?'grid':'none';
-  if(hasSeen){
-    const m=getMastery();
-    $('mastery-grid').innerHTML=CAT_KEYS.map(cat=>{
-      const c=m[cat],col=COLORS[cat],label=(da?CAT_DA:CAT_EN)[cat];
-      return`<div class="mc"><div class="mc-name"><span class="mc-dot" style="background:${col}"></span>${label}</div><div class="mc-bg"><div class="mc-fill" style="width:${c.pct}%;background:${col}"></div></div><div class="mc-pct">${c.pct}% · ${c.seen}/${c.total} ${da?'set':'seen'}</div></div>`;
-    }).join('');
+  if(!isDesktop()){
+    $('h-mastery-lbl').style.display=hasSeen?'block':'none';
+    $('mastery-grid').style.display=hasSeen?'grid':'none';
+    if(hasSeen){
+      const m=getMastery();
+      $('mastery-grid').innerHTML=CAT_KEYS.map(cat=>{
+        const c=m[cat],col=COLORS[cat],label=(da?CAT_DA:CAT_EN)[cat];
+        return`<div class="mc"><div class="mc-name"><span class="mc-dot" style="background:${col}"></span>${label}</div><div class="mc-bg"><div class="mc-fill" style="width:${c.pct}%;background:${col}"></div></div><div class="mc-pct">${c.pct}% · ${c.seen}/${c.total} ${da?'set':'seen'}</div></div>`;
+      }).join('');
+    }
   }
 
   $('weak-btn').style.display=getWrongIds().length>0?'flex':'none';
@@ -929,33 +933,20 @@ function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'
 (async function init(){
   dark=ld('dk_dark',false);lang=ld('dk_lang','en');selCat=lang==='en'?'All':'Alle';
   applyPrefs();
-
-  // Show loading while checking session
   $('load-overlay').style.display='flex';
   $('load-msg').textContent='Checking session…';
 
-  // Handle future auth events (magic link callback, sign-out)
+  // Single auth handler — covers page load (INITIAL_SESSION), magic link (SIGNED_IN), sign-out
   sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session&&!appInitialized){
+    if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session&&!appInitialized){
       currentUser=session.user;appInitialized=true;
       await initApp();
-    }else if(event==='SIGNED_OUT'){
+    }else if(event==='SIGNED_OUT'||(event==='INITIAL_SESSION'&&!session)){
       currentUser=null;appInitialized=false;Q=[];progressCache={};
-      showAuthOverlay();
-    }
-  });
-
-  // Check existing session
-  const{data:{session}}=await sb.auth.getSession();
-  if(!appInitialized){
-    if(session){
-      currentUser=session.user;appInitialized=true;
-      await initApp();
-    }else{
       $('load-overlay').style.display='none';
       showAuthOverlay();
     }
-  }
+  });
 })();
 </script>
 </body>
