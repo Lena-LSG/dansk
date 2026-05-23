@@ -188,13 +188,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   }
   #screen-home:hover{width:218px}
 
-  /* Always hidden on desktop */
+  /* Always hidden on desktop — !important overrides JS inline styles */
   #screen-home .hdr,
   #screen-home #streak-bar,
   #screen-home #h-mastery-lbl,
   #screen-home #mastery-grid,
   #screen-home #h-info-lbl,
-  #screen-home .info-card{display:none}
+  #screen-home .info-card{display:none!important}
 
   /* Hidden when collapsed, visible when expanded */
   #screen-home .mode-btn>div,
@@ -244,17 +244,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
   .back-link{display:none}
 
-  /* Content spacing */
+  /* Right panel: clip horizontal overflow */
+  #right-panel .screen{overflow-x:hidden}
+
+  /* Content spacing — max-width keeps long lines readable */
   .q-card{margin:24px 36px 0;max-width:660px}
   .options{padding:14px 36px 0;max-width:660px}
   .explanation{margin:14px 36px 28px;max-width:660px}
   .exam-note{margin:14px 36px 0;max-width:660px}
   .share-row{margin:16px 36px 0;max-width:660px}
-  #right-panel .pad{padding:28px 36px}
+  #right-panel .pad{padding:28px 36px;max-width:860px;box-sizing:border-box;width:100%}
   .study-nav{padding:0 36px}
   .card-scene{margin:0 36px;height:340px;max-width:660px}
   .res-hdr{padding:40px 36px 28px}
-  #screen-welcome .mastery-grid{grid-template-columns:repeat(4,1fr)}
+
+  /* Welcome dashboard — 2-col mastery grid, doesn't overflow */
+  #screen-welcome .mastery-grid{grid-template-columns:repeat(2,1fr);max-width:760px}
+  #screen-welcome .stats{max-width:760px}
+  #screen-welcome .info-card{max-width:760px}
 }
 </style>
 </head>
