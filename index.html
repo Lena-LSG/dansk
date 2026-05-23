@@ -151,23 +151,76 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .load-msg{font-size:13px;color:var(--sub);font-weight:500}
 
 /* ── DESKTOP ──────────────────────────────────────────────────────────────── */
+#topbar{display:none}
+#main-area{display:contents}
 #right-panel{display:contents}
 
-@media(min-width:600px){
-  #app{max-width:680px}
-  .hdr{padding:40px 28px 28px}
-  .pad{padding:22px 28px}
-  .q-card{margin:24px 28px 0}
-  .options{padding:14px 28px 0}
-  .explanation{margin:14px 28px 28px}
-  .exam-note{margin:14px 28px 0}
-  .share-row{margin:16px 28px 0}
-  .study-nav{padding:0 28px}
-  .card-scene{margin:0 28px;height:340px}
-  .res-hdr{padding:48px 28px 32px}
-  .mastery-grid{grid-template-columns:repeat(4,1fr)}
-  .stats{gap:12px}
-  .chips{gap:9px}
+@media(min-width:768px){
+  html,body{height:100%;overflow:hidden}
+  #app{max-width:100%;height:100vh;flex-direction:column;margin:0}
+
+  /* Single topbar — one identity across both panels */
+  #topbar{
+    display:flex;align-items:center;gap:12px;flex-shrink:0;
+    background:var(--hdr);padding:0 24px;height:54px;
+    transition:background var(--tr);
+  }
+  .tb-flag{display:inline-block;width:36px;height:26px;background:var(--red);border-radius:2px;position:relative;flex-shrink:0;filter:brightness(1.15)}
+  .tb-flag::before{content:'';position:absolute;left:11px;top:0;width:5px;height:100%;background:#fff}
+  .tb-flag::after{content:'';position:absolute;left:0;top:10px;width:100%;height:5px;background:#fff}
+  .tb-title{font-family:'Libre Baskerville',serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:2px;line-height:1}
+  .tb-sub{font-size:9px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,.55);text-transform:uppercase;margin-top:2px}
+  .tb-streak{display:none;align-items:center;gap:5px;margin-left:12px;background:rgba(0,0,0,.18);padding:3px 10px;border-radius:20px}
+  .tb-streak.on{display:flex}
+  .tb-streak-txt{font-size:12px;color:#fff;font-weight:600}
+
+  /* Main area below topbar */
+  #main-area{display:flex;flex:1;min-height:0;overflow:hidden}
+
+  /* Left sidebar — navigation only, topbar owns branding */
+  #screen-home{
+    width:232px;min-width:232px;flex-shrink:0;
+    height:100%;overflow-y:auto;
+    border-right:1px solid var(--bdr);
+    display:flex!important;flex-direction:column;
+  }
+  #screen-home .hdr{display:none}
+  #screen-home #streak-bar{display:none!important}
+  #screen-home #h-mastery-lbl{display:none!important}
+  #screen-home #mastery-grid{display:none!important}
+  #screen-home .scroll-body{padding-top:0}
+  #screen-home .pad{padding:12px 12px 20px}
+  #screen-home .lbl{font-size:10px;margin-bottom:8px}
+  #screen-home .chips{gap:5px}
+  #screen-home .chip{padding:4px 9px;font-size:11px}
+  #screen-home .mode-btn{padding:10px 11px;margin-bottom:5px;border-radius:11px}
+  #screen-home .mode-icon{font-size:16px}
+  #screen-home .mode-title{font-size:13px}
+  #screen-home .mode-desc{font-size:11px}
+  #screen-home .stats{gap:5px;margin-bottom:16px}
+  #screen-home .stat{padding:9px 6px}
+  #screen-home .stat-n{font-size:18px}
+  #screen-home .stat-l{font-size:10px}
+  #screen-home .info-card{display:none}
+  #screen-home #h-info-lbl{display:none}
+
+  /* Right panel — content area */
+  #right-panel{display:flex;flex-direction:column;flex:1;min-width:0;height:100%;overflow:hidden}
+  #right-panel .screen{flex:1;height:100%;overflow-y:auto}
+
+  .back-link{display:none}
+
+  /* Content spacing in right panel */
+  .q-card{margin:24px 36px 0;max-width:640px}
+  .options{padding:14px 36px 0;max-width:640px}
+  .explanation{margin:14px 36px 28px;max-width:640px}
+  .exam-note{margin:14px 36px 0;max-width:640px}
+  .share-row{margin:16px 36px 0;max-width:640px}
+  #right-panel .pad{padding:28px 36px}
+  .study-nav{padding:0 36px}
+  .card-scene{margin:0 36px;height:340px;max-width:640px}
+  .res-hdr{padding:40px 36px 28px}
+  #screen-welcome .mastery-grid{grid-template-columns:repeat(4,1fr)}
 }
 </style>
 </head>
@@ -199,8 +252,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div id="app">
 
+<!-- ── TOPBAR (desktop only) ──────────────────────────────────────────────── -->
+<div id="topbar">
+  <div class="tb-flag"></div>
+  <div><div class="tb-title">DANSK</div><div class="tb-sub" id="tb-sub">Citizenship Test Prep</div></div>
+  <div class="tb-streak" id="tb-streak">🔥 <span class="tb-streak-txt" id="tb-streak-txt"></span></div>
+  <div style="flex:1"></div>
+  <div class="toggles">
+    <button class="tbtn hs" id="lang-btn-tb" onclick="toggleLang()">🇩🇰 DA</button>
+    <button class="tbtn hs" id="dark-btn-tb" onclick="toggleDark()">🌙</button>
+    <button class="tbtn hs" onclick="signOut()" style="font-size:11px" title="Sign out">↩</button>
+  </div>
+</div>
+
+<div id="main-area">
+
 <!-- ════════════════════════════════════════════════════════════════════════
-     HOME
+     HOME (sidebar on desktop / full screen on mobile)
 ════════════════════════════════════════════════════════════════════════ -->
 <div id="screen-home" class="screen active">
   <div class="hdr">
@@ -247,6 +315,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
      RIGHT PANEL
 ════════════════════════════════════════════════════════════════════════ -->
 <div id="right-panel">
+
+<!-- WELCOME — dashboard shown by default on desktop -->
+<div id="screen-welcome" class="screen">
+  <div class="scroll-body"><div class="pad">
+    <div style="margin-bottom:24px">
+      <div style="font-family:'Libre Baskerville',serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:6px" id="w-greeting">Good to have you back.</div>
+      <div style="font-size:14px;color:var(--sub)" id="w-sub">Select a mode from the left to begin.</div>
+    </div>
+    <div class="lbl" id="w-due-lbl">TODAY'S REVIEW</div>
+    <div class="info-card" id="w-due-card" style="margin-bottom:24px"></div>
+    <div class="lbl" id="w-mastery-lbl">YOUR PROGRESS</div>
+    <div class="mastery-grid" id="w-mastery-grid" style="margin-bottom:24px"></div>
+    <div class="stats" id="w-stats">
+      <div class="stat"><div class="stat-n" id="w-bank">—</div><div class="stat-l" id="w-s1">Questions in bank</div></div>
+      <div class="stat"><div class="stat-n">80%</div><div class="stat-l" id="w-s2">Pass mark (36/45)</div></div>
+      <div class="stat"><div class="stat-n">10</div><div class="stat-l" id="w-s3">Values questions</div></div>
+    </div>
+  </div></div>
+</div>
 
 <!-- QUIZ -->
 <div id="screen-quiz" class="screen">
@@ -358,6 +445,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 </div><!-- #right-panel -->
+</div><!-- #main-area -->
 </div><!-- #app -->
 
 <script>
@@ -504,7 +592,8 @@ async function initApp(){
     hideAuthOverlay();
     applyPrefs();
     renderHome();
-    show('screen-home');
+    if(isDesktop())show('screen-welcome');
+    else show('screen-home');
   }catch(e){
     $('load-overlay').style.display='none';
     setAuthMsg('Failed to load: '+e.message,'err');
@@ -528,20 +617,28 @@ const checkStreak=()=>{
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;};
 const $=id=>document.getElementById(id);
+const isDesktop=()=>window.innerWidth>=768;
 const cmap=()=>lang==='da'?CAT_DA:CAT_EN;
 const filtered=()=>selCat==='All'||selCat==='Alle'?Q:Q.filter(q=>cmap()[q.cat]===selCat);
 
 function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  $(id).classList.add('active');
-  window.scrollTo(0,0);
+  if(isDesktop()){
+    // Home always visible in sidebar; switch right panel content
+    document.querySelectorAll('#right-panel .screen').forEach(s=>s.classList.remove('active'));
+    const target=(id==='screen-home')?'screen-welcome':id;
+    $(target)&&$(target).classList.add('active');
+  }else{
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    $(id).classList.add('active');
+    window.scrollTo(0,0);
+  }
 }
 
 function applyPrefs(){
   document.body.classList.toggle('dark',dark);
   const moon=dark?'☀️':'🌙',flag=lang==='en'?'🇩🇰 DA':'🇬🇧 EN';
-  ['dark-btn','dark-btn2'].forEach(id=>$(id)&&($(id).textContent=moon));
-  ['lang-btn','lang-btn2'].forEach(id=>$(id)&&($(id).textContent=flag));
+  ['dark-btn','dark-btn2','dark-btn-tb'].forEach(id=>$(id)&&($(id).textContent=moon));
+  ['lang-btn','lang-btn2','lang-btn-tb'].forEach(id=>$(id)&&($(id).textContent=flag));
 }
 
 function toggleDark(){dark=!dark;sv('dk_dark',dark);applyPrefs();}
@@ -569,6 +666,10 @@ function renderHome(){
   const streak=checkStreak();
   $('streak-bar').style.display=streak>0?'flex':'none';
   if(streak>0)$('streak-txt').textContent=da?`${streak} dag${streak>1?'e':''} i træk 🔥`:`${streak} day streak 🔥`;
+  const tbStreak=$('tb-streak');
+  if(tbStreak){tbStreak.classList.toggle('on',streak>0);if(streak>0)$('tb-streak-txt').textContent=da?`${streak} dag${streak>1?'e':''} i træk`:`${streak} day${streak!==1?'s':''} streak`;}
+  $('tb-sub')&&($('tb-sub').textContent=da?'Indfødsretsprøven Forberedelse':'Citizenship Test Prep');
+  renderWelcome();
 
   const p=progressCache, hasSeen=Object.keys(p).length>0;
   $('h-mastery-lbl').style.display=hasSeen?'block':'none';
@@ -596,6 +697,49 @@ function renderHome(){
 
 function selectCat(cat){selCat=cat;renderHome();}
 function goHome(){stopTimer();show('screen-home');renderHome();}
+
+// ── WELCOME DASHBOARD (right panel default on desktop) ────────────────────────
+function renderWelcome(){
+  if(!$('screen-welcome'))return;
+  const da=lang==='da';
+  $('w-greeting')&&($('w-greeting').textContent=da?'Velkommen tilbage.':'Good to have you back.');
+  $('w-sub')&&($('w-sub').textContent=da?'Vælg en tilstand til venstre for at starte.':'Select a mode from the left to begin.');
+  $('w-due-lbl')&&($('w-due-lbl').textContent=da?'DAGENS GENNEMGANG':'TODAY\'S REVIEW');
+  $('w-mastery-lbl')&&($('w-mastery-lbl').textContent=da?'DIN FREMGANG':'YOUR PROGRESS');
+  $('w-s1')&&($('w-s1').textContent=da?'Spørgsmål i bank':'Questions in bank');
+  $('w-s2')&&($('w-s2').textContent=da?'Beståelsesgrænse (36/45)':'Pass mark (36/45)');
+  $('w-s3')&&($('w-s3').textContent=da?'Værdispørgsmål':'Values questions');
+  $('w-bank')&&($('w-bank').textContent=Q.length||'—');
+
+  // Due cards status
+  const now=Date.now();
+  const due=Object.entries(progressCache).filter(([,c])=>c.wrong>0&&c.due<=now);
+  const dc=$('w-due-card');
+  if(dc){
+    if(!Object.keys(progressCache).length){
+      dc.innerHTML=`<div class="info-row" style="border:none"><span class="info-check">→</span><span style="font-size:13px;color:var(--sub)">${da?'Start med at studere for at spore din fremgang.':'Start studying to track your progress.'}</span></div>`;
+    }else if(due.length){
+      dc.innerHTML=`<div class="info-row"><span class="info-check">📚</span><span style="font-size:13px;color:var(--text)">${due.length} ${da?'kort klar til gennemgang':'card'+(due.length!==1?'s':'')+' ready for review'}</span></div><div class="info-row" style="border:none"><span class="info-check" style="color:var(--sub)">→</span><span style="font-size:13px;color:var(--sub)">${da?'Start Svage Punkter i venstre panel.':'Use Weak Spots in the left panel.'}</span></div>`;
+    }else{
+      dc.innerHTML=`<div class="info-row" style="border:none"><span class="info-check" style="color:var(--green)">✓</span><span style="font-size:13px;color:var(--text)">${da?'Alt ajour! Ingen kort forfalder nu.':'All caught up — no cards due right now.'}</span></div>`;
+    }
+  }
+
+  // Mastery grid
+  const hasSeen=Object.keys(progressCache).length>0;
+  const wml=$('w-mastery-lbl'),wmg=$('w-mastery-grid');
+  if(wml)wml.style.display=hasSeen?'block':'none';
+  if(wmg){
+    wmg.style.display=hasSeen?'grid':'none';
+    if(hasSeen){
+      const m=getMastery();
+      wmg.innerHTML=CAT_KEYS.map(cat=>{
+        const c=m[cat],col=COLORS[cat],label=(da?CAT_DA:CAT_EN)[cat];
+        return`<div class="mc"><div class="mc-name"><span class="mc-dot" style="background:${col}"></span>${label}</div><div class="mc-bg"><div class="mc-fill" style="width:${c.pct}%;background:${col}"></div></div><div class="mc-pct">${c.pct}% · ${c.seen}/${c.total} ${da?'set':'seen'}</div></div>`;
+      }).join('');
+    }
+  }
+}
 
 // ── QUIZ ──────────────────────────────────────────────────────────────────────
 function startQuiz(m){
