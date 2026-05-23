@@ -158,34 +158,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   html,body{height:100%;overflow:hidden}
   #app{max-width:100%;height:100vh;flex-direction:row;margin:0}
 
-  /* Left panel: always visible */
+  /* Left panel */
   #screen-home{
-    width:340px;min-width:340px;flex-shrink:0;
+    width:300px;min-width:300px;flex-shrink:0;
     height:100vh;overflow-y:auto;
     border-right:1px solid var(--bdr);
     display:flex!important;flex-direction:column
   }
-  #screen-home .hdr{padding-top:28px}
+  #screen-home .hdr{padding-top:20px;padding-bottom:16px}
+  #screen-home .hdr-title{font-size:26px}
+  #screen-home .mode-btn{padding:11px 14px;margin-bottom:7px}
+  #screen-home .mode-icon{font-size:18px}
+  #screen-home .mode-title{font-size:14px}
 
-  /* Right panel: flex container for content screens */
+  /* Right panel */
   #right-panel{display:flex;flex-direction:column;flex:1;min-width:0;height:100vh;overflow:hidden}
   #right-panel .screen{flex:1;height:100vh;overflow-y:auto}
 
   /* Back links redundant on desktop */
   .back-link{display:none}
 
-  /* Welcome screen desktop padding */
-  #screen-welcome .hdr{padding-top:28px}
-
-  /* Wider quiz cards on desktop */
-  .q-card{margin:20px 28px 0}
-  .options{padding:13px 28px 0}
-  .explanation{margin:13px 28px 28px}
-  .exam-note{margin:13px 28px 0}
-  .share-row{margin:16px 28px 0}
-  .pad{padding:24px 28px}
-  .study-nav{padding:0 28px}
-  .card-scene{margin:0 28px}
+  /* Wider content on desktop */
+  .q-card{margin:20px 32px 0;max-width:680px}
+  .options{padding:13px 32px 0;max-width:680px}
+  .explanation{margin:13px 32px 28px;max-width:680px}
+  .exam-note{margin:13px 32px 0;max-width:680px}
+  .share-row{margin:16px 32px 0;max-width:680px}
+  .pad{padding:28px 32px;max-width:780px}
+  .study-nav{padding:0 32px}
+  .card-scene{margin:0 32px;max-width:680px}
+  .res-hdr{padding:32px 32px 24px}
 }
 </style>
 </head>
@@ -268,17 +270,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <!-- WELCOME (desktop right-panel default) -->
 <div id="screen-welcome" class="screen active">
-  <div class="hdr" style="background:var(--navy)">
-    <div class="hdr-top">
-      <div class="hdr-brand"><div class="flag"></div><div><div class="hdr-title">DANSK</div><div class="hdr-sub">Citizenship Test Prep</div></div></div>
-      <div class="toggles">
-        <button class="tbtn hs" id="lang-btn3" onclick="toggleLang()">🇩🇰 DA</button>
-        <button class="tbtn hs" id="dark-btn3" onclick="toggleDark()">🌙</button>
-      </div>
+  <div class="scroll-body"><div class="pad" style="padding-top:32px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:'Libre Baskerville',serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px" id="w-title">Good to have you back.</div>
+      <div style="font-size:13px;color:var(--sub)" id="w-desc">Select a mode from the left panel to begin.</div>
     </div>
-    <div class="hdr-desc" id="w-desc">Select a mode from the left panel to begin.</div>
-  </div>
-  <div class="scroll-body"><div class="pad">
     <div class="lbl" id="w-due-lbl">TODAY'S REVIEW</div>
     <div class="info-card" id="w-due-card"></div>
     <div class="lbl" id="w-mastery-lbl" style="display:none">MASTERY OVERVIEW</div>
@@ -593,8 +589,8 @@ function show(id){
 function applyPrefs(){
   document.body.classList.toggle('dark',dark);
   const moon=dark?'☀️':'🌙',flag=lang==='en'?'🇩🇰 DA':'🇬🇧 EN';
-  ['dark-btn','dark-btn2','dark-btn3'].forEach(id=>$(id)&&($(id).textContent=moon));
-  ['lang-btn','lang-btn2','lang-btn3'].forEach(id=>$(id)&&($(id).textContent=flag));
+  ['dark-btn','dark-btn2'].forEach(id=>$(id)&&($(id).textContent=moon));
+  ['lang-btn','lang-btn2'].forEach(id=>$(id)&&($(id).textContent=flag));
 }
 
 function toggleDark(){dark=!dark;sv('dk_dark',dark);applyPrefs();}
@@ -653,7 +649,8 @@ function renderHome(){
 function renderWelcome(){
   if(!$('screen-welcome'))return;
   const da=lang==='da';
-  $('w-desc').textContent=da?'Vælg en tilstand i venstre panel for at starte.':'Select a mode from the left panel to begin.';
+  $('w-title')&&($('w-title').textContent=da?'Velkommen tilbage.':'Good to have you back.');
+  $('w-desc')&&($('w-desc').textContent=da?'Vælg en tilstand i venstre panel for at starte.':'Select a mode from the left panel to begin.');
   $('w-due-lbl').textContent=da?'DAGENS GENNEMGANG':'TODAY\'S REVIEW';
   $('w-info-lbl').textContent=da?'OM PRØVEN':'ABOUT THE TEST';
 
@@ -685,10 +682,6 @@ function renderWelcome(){
   const items=da?['45 multiple choice-spørgsmål','45 minutter · ingen hjælpemidler','Skal score 36/45 (80%) for at bestå','Skal svare rigtigt på 4/5 værdispørgsmål','Afholdes juni og november','Gebyr: 905 kr. (2026)']:['45 multiple-choice questions','45 minutes · no aids allowed','Must score 36/45 (80%) to pass','Must get 4/5 values questions correct','Held in June and November','Fee: 905 DKK (2026)'];
   $('w-info-card').innerHTML=items.map((t,i)=>`<div class="info-row"${i===items.length-1?' style="border:none"':''}><span class="info-check">✓</span><span style="font-size:13px;color:var(--text)">${t}</span></div>`).join('');
 
-  // Sync lang buttons
-  const f=lang==='en'?'🇩🇰 DA':'🇬🇧 EN';
-  $('lang-btn3')&&($('lang-btn3').textContent=f);
-  $('dark-btn3')&&($('dark-btn3').textContent=dark?'☀️':'🌙');
 }
 
 function selectCat(cat){selCat=cat;renderHome();}
