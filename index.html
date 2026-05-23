@@ -151,66 +151,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .load-msg{font-size:13px;color:var(--sub);font-weight:500}
 
 /* ── DESKTOP ──────────────────────────────────────────────────────────────── */
-#topbar{display:none}
-#main-area{display:contents}
 #right-panel{display:contents}
 
-@media(min-width:768px){
-  html,body{height:100%;overflow:hidden}
-  #app{max-width:100%;height:100vh;flex-direction:column;margin:0}
-
-  /* Full-width topbar spans both panels — single identity */
-  #topbar{
-    display:flex;align-items:center;gap:14px;flex-shrink:0;
-    background:var(--hdr);padding:0 20px;height:52px;
-    transition:background var(--tr);
-  }
-  .tb-brand{display:flex;flex-direction:column;justify-content:center}
-  .tb-title{font-family:'Libre Baskerville',serif;font-size:21px;font-weight:700;color:#fff;letter-spacing:2px;line-height:1}
-  .tb-sub{font-size:9px;font-weight:600;letter-spacing:2.5px;color:rgba(255,255,255,.6);text-transform:uppercase;margin-top:2px}
-  .tb-streak{display:none;align-items:center;gap:6px;background:rgba(0,0,0,.2);padding:3px 12px;border-radius:20px;margin-left:8px}
-  .tb-streak.on{display:flex}
-  .tb-streak-txt{font-size:12px;color:#fff;font-weight:600}
-
-  /* Main area: sidebar + content, fills below topbar */
-  #main-area{display:flex;flex:1;overflow:hidden;min-height:0}
-
-  /* Sidebar — clean nav, topbar owns the branding */
-  #screen-home{
-    width:268px;min-width:268px;flex-shrink:0;
-    height:100%;overflow-y:auto;
-    border-right:1px solid var(--bdr);
-    display:flex!important;flex-direction:column;
-  }
-  #screen-home .hdr{display:none}
-  #screen-home #streak-bar{display:none!important}
-  #screen-home .scroll-body{padding-top:0}
-  #screen-home .pad{padding:14px 14px 24px}
-  #screen-home .lbl{margin-bottom:8px}
-  #screen-home .mode-btn{padding:10px 12px;margin-bottom:6px}
-  #screen-home .mode-icon{font-size:17px}
-  #screen-home .mode-title{font-size:13px}
-  #screen-home .mode-desc{font-size:11px}
-  #screen-home .stats{gap:6px}
-  #screen-home .stat{padding:10px 8px}
-  #screen-home .stat-n{font-size:20px}
-
-  /* Right panel */
-  #right-panel{display:flex;flex-direction:column;flex:1;min-width:0;height:100%;overflow:hidden}
-  #right-panel .screen{flex:1;height:100%;overflow-y:auto}
-
-  .back-link{display:none}
-
-  /* Content spacing on desktop */
-  .q-card{margin:20px 32px 0;max-width:680px}
-  .options{padding:13px 32px 0;max-width:680px}
-  .explanation{margin:13px 32px 28px;max-width:680px}
-  .exam-note{margin:13px 32px 0;max-width:680px}
-  .share-row{margin:16px 32px 0;max-width:680px}
-  #right-panel .pad{padding:28px 32px;max-width:780px}
-  .study-nav{padding:0 32px}
-  .card-scene{margin:0 32px;max-width:680px}
-  .res-hdr{padding:32px 32px 24px}
+@media(min-width:600px){
+  #app{max-width:680px}
+  .hdr{padding:40px 28px 28px}
+  .pad{padding:22px 28px}
+  .q-card{margin:24px 28px 0}
+  .options{padding:14px 28px 0}
+  .explanation{margin:14px 28px 28px}
+  .exam-note{margin:14px 28px 0}
+  .share-row{margin:16px 28px 0}
+  .study-nav{padding:0 28px}
+  .card-scene{margin:0 28px;height:340px}
+  .res-hdr{padding:48px 28px 32px}
+  .mastery-grid{grid-template-columns:repeat(4,1fr)}
+  .stats{gap:12px}
+  .chips{gap:9px}
 }
 </style>
 </head>
@@ -242,27 +199,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div id="app">
 
-<!-- ── DESKTOP TOPBAR (hidden on mobile) ──────────────────────────────────── -->
-<div id="topbar">
-  <div class="flag" style="width:38px;height:27px"></div>
-  <div class="tb-brand">
-    <div class="tb-title">DANSK</div>
-    <div class="tb-sub" id="tb-sub">Citizenship Test Prep</div>
-  </div>
-  <div class="tb-streak" id="tb-streak"><span>🔥</span><span class="tb-streak-txt" id="tb-streak-txt"></span></div>
-  <div style="flex:1"></div>
-  <div class="toggles">
-    <button class="tbtn hs" id="lang-btn-tb" onclick="toggleLang()">🇩🇰 DA</button>
-    <button class="tbtn hs" id="dark-btn-tb" onclick="toggleDark()">🌙</button>
-    <button class="tbtn hs" onclick="signOut()" style="font-size:11px" title="Sign out">↩</button>
-  </div>
-</div>
-
-<!-- ── MAIN AREA: sidebar + content ───────────────────────────────────────── -->
-<div id="main-area">
-
 <!-- ════════════════════════════════════════════════════════════════════════
-     HOME (sidebar on desktop, full screen on mobile)
+     HOME
 ════════════════════════════════════════════════════════════════════════ -->
 <div id="screen-home" class="screen active">
   <div class="hdr">
@@ -306,25 +244,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <!-- ════════════════════════════════════════════════════════════════════════
-     RIGHT PANEL — content screens (desktop) / normal screens (mobile)
+     RIGHT PANEL
 ════════════════════════════════════════════════════════════════════════ -->
 <div id="right-panel">
-
-<!-- WELCOME (desktop right-panel default) -->
-<div id="screen-welcome" class="screen active">
-  <div class="scroll-body"><div class="pad" style="padding-top:32px">
-    <div style="margin-bottom:28px">
-      <div style="font-family:'Libre Baskerville',serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px" id="w-title">Good to have you back.</div>
-      <div style="font-size:13px;color:var(--sub)" id="w-desc">Select a mode from the left panel to begin.</div>
-    </div>
-    <div class="lbl" id="w-due-lbl">TODAY'S REVIEW</div>
-    <div class="info-card" id="w-due-card"></div>
-    <div class="lbl" id="w-mastery-lbl" style="display:none">MASTERY OVERVIEW</div>
-    <div class="mastery-grid" id="w-mastery-grid" style="display:none"></div>
-    <div class="lbl" id="w-info-lbl">ABOUT THE TEST</div>
-    <div class="info-card" id="w-info-card"></div>
-  </div></div>
-</div>
 
 <!-- QUIZ -->
 <div id="screen-quiz" class="screen">
@@ -436,7 +358,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 </div><!-- #right-panel -->
-</div><!-- #main-area -->
 </div><!-- #app -->
 
 <script>
@@ -583,13 +504,7 @@ async function initApp(){
     hideAuthOverlay();
     applyPrefs();
     renderHome();
-    renderWelcome();
-    if(isDesktop()){
-      document.querySelectorAll('#right-panel .screen').forEach(s=>s.classList.remove('active'));
-      $('screen-welcome').classList.add('active');
-    }else{
-      show('screen-home');
-    }
+    show('screen-home');
   }catch(e){
     $('load-overlay').style.display='none';
     setAuthMsg('Failed to load: '+e.message,'err');
@@ -613,31 +528,24 @@ const checkStreak=()=>{
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;};
 const $=id=>document.getElementById(id);
-const isDesktop=()=>window.innerWidth>=768;
 const cmap=()=>lang==='da'?CAT_DA:CAT_EN;
 const filtered=()=>selCat==='All'||selCat==='Alle'?Q:Q.filter(q=>cmap()[q.cat]===selCat);
 
 function show(id){
-  if(isDesktop()){
-    document.querySelectorAll('#right-panel .screen').forEach(s=>s.classList.remove('active'));
-    if(id==='screen-home'||id==='screen-welcome')$('screen-welcome').classList.add('active');
-    else $(id).classList.add('active');
-  }else{
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-    $(id).classList.add('active');
-    window.scrollTo(0,0);
-  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
 }
 
 function applyPrefs(){
   document.body.classList.toggle('dark',dark);
   const moon=dark?'☀️':'🌙',flag=lang==='en'?'🇩🇰 DA':'🇬🇧 EN';
-  ['dark-btn','dark-btn2','dark-btn-tb'].forEach(id=>$(id)&&($(id).textContent=moon));
-  ['lang-btn','lang-btn2','lang-btn-tb'].forEach(id=>$(id)&&($(id).textContent=flag));
+  ['dark-btn','dark-btn2'].forEach(id=>$(id)&&($(id).textContent=moon));
+  ['lang-btn','lang-btn2'].forEach(id=>$(id)&&($(id).textContent=flag));
 }
 
 function toggleDark(){dark=!dark;sv('dk_dark',dark);applyPrefs();}
-function toggleLang(){lang=lang==='en'?'da':'en';selCat=lang==='en'?'All':'Alle';sv('dk_lang',lang);applyPrefs();renderHome();renderWelcome();if(document.querySelector('#screen-study.active'))renderCard();}
+function toggleLang(){lang=lang==='en'?'da':'en';selCat=lang==='en'?'All':'Alle';sv('dk_lang',lang);applyPrefs();renderHome();if(document.querySelector('#screen-study.active'))renderCard();}
 
 // ── HOME RENDER ───────────────────────────────────────────────────────────────
 function renderHome(){
@@ -661,10 +569,6 @@ function renderHome(){
   const streak=checkStreak();
   $('streak-bar').style.display=streak>0?'flex':'none';
   if(streak>0)$('streak-txt').textContent=da?`${streak} dag${streak>1?'e':''} i træk 🔥`:`${streak} day streak 🔥`;
-  // Topbar streak (desktop)
-  $('tb-sub')&&($('tb-sub').textContent=da?'Indfødsretsprøven Forberedelse':'Citizenship Test Prep');
-  const tbStreak=$('tb-streak');
-  if(tbStreak){tbStreak.classList.toggle('on',streak>0);if(streak>0)$('tb-streak-txt').textContent=`${streak} day${streak>1?'s':''} 🔥`;}
 
   const p=progressCache, hasSeen=Object.keys(p).length>0;
   $('h-mastery-lbl').style.display=hasSeen?'block':'none';
@@ -688,47 +592,6 @@ function renderHome(){
     return`<button class="chip${ac?' active':''}" style="${ac?`background:${col};border-color:${col}`:''}" onclick="selectCat('${cat.replace(/'/g,"\\'")}')"><span class="chip-dot" style="background:${ac?'rgba(255,255,255,.7)':col}"></span>${cat}</button>`;
   }).join('');
   $('q-count-txt').textContent=`${filtered().length} ${da?'spørgsmål tilgængelige':'questions available'}`;
-
-  renderWelcome();
-}
-
-// ── WELCOME RENDER (desktop right-panel default) ──────────────────────────────
-function renderWelcome(){
-  if(!$('screen-welcome'))return;
-  const da=lang==='da';
-  $('w-title')&&($('w-title').textContent=da?'Velkommen tilbage.':'Good to have you back.');
-  $('w-desc')&&($('w-desc').textContent=da?'Vælg en tilstand i venstre panel for at starte.':'Select a mode from the left panel to begin.');
-  $('w-due-lbl').textContent=da?'DAGENS GENNEMGANG':'TODAY\'S REVIEW';
-  $('w-info-lbl').textContent=da?'OM PRØVEN':'ABOUT THE TEST';
-
-  // Due cards
-  const now=Date.now();
-  const due=Object.entries(progressCache).filter(([,c])=>c.wrong>0&&c.due<=now);
-  const $dc=$('w-due-card');
-  if(!Object.keys(progressCache).length){
-    $dc.innerHTML=`<div class="info-row" style="border:none"><span class="info-check">→</span><span style="font-size:13px;color:var(--sub)">${da?'Start med at studere for at spore dine fremskridt.':'Start studying to track your progress.'}</span></div>`;
-  }else if(due.length){
-    $dc.innerHTML=`<div class="info-row"><span class="info-check">📚</span><span style="font-size:13px;color:var(--text)">${due.length} ${da?`kort forfalder til gennemgang`:'card'+(due.length===1?'':'s')+' due for review'}</span></div><div class="info-row" style="border:none"><span class="info-check" style="color:var(--sub)">→</span><span style="font-size:13px;color:var(--sub)">${da?'Start Svage Punkter for at gennemgå dem.':'Start a Weak Spots session to review them.'}</span></div>`;
-  }else{
-    $dc.innerHTML=`<div class="info-row" style="border:none"><span class="info-check" style="color:var(--green)">✓</span><span style="font-size:13px;color:var(--text)">${da?'Alt ajour! Ingen kort forfalder nu.':'All caught up! No cards due right now.'}</span></div>`;
-  }
-
-  // Mastery grid
-  const hasSeen=Object.keys(progressCache).length>0;
-  $('w-mastery-lbl').style.display=hasSeen?'block':'none';
-  $('w-mastery-grid').style.display=hasSeen?'grid':'none';
-  if(hasSeen){
-    const m=getMastery();
-    $('w-mastery-grid').innerHTML=CAT_KEYS.map(cat=>{
-      const c=m[cat],col=COLORS[cat],label=(da?CAT_DA:CAT_EN)[cat];
-      return`<div class="mc"><div class="mc-name"><span class="mc-dot" style="background:${col}"></span>${label}</div><div class="mc-bg"><div class="mc-fill" style="width:${c.pct}%;background:${col}"></div></div><div class="mc-pct">${c.pct}% · ${c.seen}/${c.total} ${da?'set':'seen'}</div></div>`;
-    }).join('');
-  }
-
-  // Info
-  const items=da?['45 multiple choice-spørgsmål','45 minutter · ingen hjælpemidler','Skal score 36/45 (80%) for at bestå','Skal svare rigtigt på 4/5 værdispørgsmål','Afholdes juni og november','Gebyr: 905 kr. (2026)']:['45 multiple-choice questions','45 minutes · no aids allowed','Must score 36/45 (80%) to pass','Must get 4/5 values questions correct','Held in June and November','Fee: 905 DKK (2026)'];
-  $('w-info-card').innerHTML=items.map((t,i)=>`<div class="info-row"${i===items.length-1?' style="border:none"':''}><span class="info-check">✓</span><span style="font-size:13px;color:var(--text)">${t}</span></div>`).join('');
-
 }
 
 function selectCat(cat){selCat=cat;renderHome();}
