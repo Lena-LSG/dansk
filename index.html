@@ -594,18 +594,35 @@ function getMastery(){
 
 // ── QUESTION LOADING ──────────────────────────────────────────────────────────
 const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
+const Q_CACHE='dk_q_cache';
 
-async function loadQuestions(){
-  const{data,error}=await withTimeout(
-    sb.from('questions').select('*').order('id',{ascending:true}),
-    10000
-  );
-  if(error||!data)throw new Error('Could not load questions: '+(error?.message||'unknown'));
-  Q=data.map(r=>({
+function mapQuestions(data){
+  return data.map(r=>({
     id:parseInt(r.id),cat:r.category,type:r.type,
     en:[r.en_question,r.en_options,r.en_correct,r.en_explanation],
     da:[r.da_question,r.da_options,r.da_correct,r.da_explanation],
   }));
+}
+
+async function loadQuestions(){
+  // Use cache immediately if available — instant load on refresh
+  const cached=ld(Q_CACHE,null);
+  if(cached&&cached.length>0){
+    Q=cached;
+    // Refresh cache in background without blocking
+    sb.from('questions').select('*').order('id',{ascending:true}).then(({data,error})=>{
+      if(!error&&data&&data.length>0){const mapped=mapQuestions(data);sv(Q_CACHE,mapped);Q=mapped;}
+    });
+    return;
+  }
+  // No cache — fetch fresh and block until done
+  const{data,error}=await withTimeout(
+    sb.from('questions').select('*').order('id',{ascending:true}),
+    12000
+  );
+  if(error||!data)throw new Error('Could not load questions: '+(error?.message||'unknown'));
+  Q=mapQuestions(data);
+  sv(Q_CACHE,Q);
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
@@ -948,12 +965,9 @@ function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'
   $('load-overlay').style.display='flex';
   $('load-msg').textContent='Checking session…';
 
-  // Subsequent auth events only — magic link callback and sign-out
+  // Subsequent auth events — magic link, token refresh, sign-out, and INITIAL_SESSION fallback
   sb.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session&&!appInitialized){
-      currentUser=session.user;appInitialized=true;
-      await initApp();
-    }else if(event==='TOKEN_REFRESHED'&&session&&!appInitialized){
+    if(session&&!appInitialized&&['SIGNED_IN','TOKEN_REFRESHED','INITIAL_SESSION'].includes(event)){
       currentUser=session.user;appInitialized=true;
       await initApp();
     }else if(event==='SIGNED_OUT'){
