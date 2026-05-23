@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>DANSK — Citizenship Test Prep</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--red:#C8102E;--navy:#0033A0;--green:#2E7D32;--amber:#B05C00;--purple:#6A1B9A;--teal:#00695C;--rose:#AD1457;--bg:#F7F3EE;--card:#fff;--hdr:#C8102E;--text:#1a1a2e;--sub:#6b6b6b;--bdr:#E4DDD4;--pbg:#EDE8E0;--tag:#EDE8E0;--tag-txt:#888;--ebg:#1a1a2e;--etxt:rgba(255,255,255,.88);--opt:#fff;--opt-bdr:#DDD6CC;--sh:rgba(30,20,10,.08);--tr:.2s cubic-bezier(.4,0,.2,1)}
@@ -24,7 +25,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .hdr-desc{font-size:13px;color:rgba(255,255,255,.82);line-height:1.6}
 .streak-bar{background:rgba(0,0,0,.2);padding:8px 20px;display:flex;align-items:center;gap:8px}
 .streak-txt{font-size:13px;color:#fff;font-weight:600}
-.toggles{display:flex;gap:7px}
+.toggles{display:flex;gap:7px;align-items:center}
 .tbtn{border-radius:20px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background var(--tr)}
 .tbtn.hs{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff}
 .tbtn.hs:hover{background:rgba(255,255,255,.25)}
@@ -130,19 +131,113 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes popIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+/* ── AUTH OVERLAY ─────────────────────────────────────────────────────────── */
+.auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;align-items:center;justify-content:center;padding:24px}
+.auth-box{background:var(--card);border-radius:20px;padding:36px 28px;max-width:380px;width:100%;box-shadow:0 8px 40px var(--sh);text-align:center}
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:20px}
+.auth-h{font-family:'Libre Baskerville',serif;font-size:30px;font-weight:700;color:var(--red);line-height:1}
+.auth-hs{font-size:10px;font-weight:600;letter-spacing:3px;color:rgba(200,16,46,.55);text-transform:uppercase;margin-top:4px}
+.auth-desc{font-size:14px;color:var(--sub);margin-bottom:24px;line-height:1.6}
+.auth-input{width:100%;padding:13px 15px;border:2px solid var(--bdr);border-radius:11px;font-size:15px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;transition:border-color var(--tr);margin-bottom:10px;display:block}
+.auth-input:focus{border-color:var(--red)}
+.auth-msg{font-size:13px;margin-top:10px;line-height:1.5;min-height:20px}
+.auth-msg.ok{color:var(--green)}.auth-msg.err{color:var(--red)}
+
+/* ── LOAD OVERLAY ─────────────────────────────────────────────────────────── */
+.load-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.spinner{width:32px;height:32px;border:3px solid var(--bdr);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-msg{font-size:13px;color:var(--sub);font-weight:500}
+
+/* ── DESKTOP ──────────────────────────────────────────────────────────────── */
+/* Mobile: right-panel is a transparent wrapper so children behave normally */
+#right-panel{display:contents}
+
+@media(min-width:768px){
+  html,body{height:100%;overflow:hidden}
+  #app{max-width:100%;height:100vh;flex-direction:row;margin:0}
+
+  /* Left panel: always visible */
+  #screen-home{
+    width:340px;min-width:340px;flex-shrink:0;
+    height:100vh;overflow-y:auto;
+    border-right:1px solid var(--bdr);
+    display:flex!important;flex-direction:column
+  }
+  #screen-home .hdr{padding-top:28px}
+
+  /* Right panel: flex container for content screens */
+  #right-panel{display:flex;flex-direction:column;flex:1;min-width:0;height:100vh;overflow:hidden}
+  #right-panel .screen{flex:1;height:100vh;overflow-y:auto}
+
+  /* Back links redundant on desktop */
+  .back-link{display:none}
+
+  /* Welcome screen desktop padding */
+  #screen-welcome .hdr{padding-top:28px}
+
+  /* Wider quiz cards on desktop */
+  .q-card{margin:20px 28px 0}
+  .options{padding:13px 28px 0}
+  .explanation{margin:13px 28px 28px}
+  .exam-note{margin:13px 28px 0}
+  .share-row{margin:16px 28px 0}
+  .pad{padding:24px 28px}
+  .study-nav{padding:0 28px}
+  .card-scene{margin:0 28px}
+}
 </style>
 </head>
-<body><div id="app">
-<!-- HOME -->
+<body>
+
+<!-- ── AUTH OVERLAY ──────────────────────────────────────────────────────── -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="flag"></div>
+      <div>
+        <div class="auth-h">DANSK</div>
+        <div class="auth-hs">Citizenship Test Prep</div>
+      </div>
+    </div>
+    <p class="auth-desc" id="auth-desc">Sign in to sync your progress across devices. No password needed.</p>
+    <input class="auth-input" type="email" id="auth-email" placeholder="your@email.com"
+           onkeydown="if(event.key==='Enter')sendMagicLink()">
+    <button class="btn-primary" id="auth-btn" onclick="sendMagicLink()">Send Magic Link</button>
+    <p class="auth-msg" id="auth-msg"></p>
+  </div>
+</div>
+
+<!-- ── LOAD OVERLAY ──────────────────────────────────────────────────────── -->
+<div class="load-overlay" id="load-overlay">
+  <div class="spinner"></div>
+  <div class="load-msg" id="load-msg">Loading questions…</div>
+</div>
+
+<div id="app">
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     HOME (left panel on desktop, full screen on mobile)
+════════════════════════════════════════════════════════════════════════ -->
 <div id="screen-home" class="screen active">
   <div class="hdr">
     <div class="hdr-top">
-      <div class="hdr-brand"><div class="flag"></div><div><div class="hdr-title">DANSK</div><div class="hdr-sub" id="h-sub">Citizenship Test Prep</div></div></div>
-      <div class="toggles"><button class="tbtn hs" id="lang-btn" onclick="toggleLang()">🇩🇰 DA</button><button class="tbtn hs" id="dark-btn" onclick="toggleDark()">🌙</button></div>
+      <div class="hdr-brand">
+        <div class="flag"></div>
+        <div><div class="hdr-title">DANSK</div><div class="hdr-sub" id="h-sub">Citizenship Test Prep</div></div>
+      </div>
+      <div class="toggles">
+        <button class="tbtn hs" id="lang-btn" onclick="toggleLang()">🇩🇰 DA</button>
+        <button class="tbtn hs" id="dark-btn" onclick="toggleDark()">🌙</button>
+        <button class="tbtn hs" onclick="signOut()" style="font-size:11px" title="Sign out">↩</button>
+      </div>
     </div>
     <div class="hdr-desc" id="h-desc">Master the knowledge needed for the Indfødsretsprøven.</div>
   </div>
-  <div id="streak-bar" class="streak-bar" style="display:none"><span>🔥</span><span class="streak-txt" id="streak-txt"></span></div>
+  <div id="streak-bar" class="streak-bar" style="display:none">
+    <span>🔥</span><span class="streak-txt" id="streak-txt"></span>
+  </div>
   <div class="scroll-body"><div class="pad">
     <div class="lbl" id="h-mastery-lbl" style="display:none">YOUR PROGRESS</div>
     <div class="mastery-grid" id="mastery-grid" style="display:none"></div>
@@ -153,29 +248,64 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <button class="mode-btn" style="background:#C8102E" onclick="startQuiz('practice')"><span class="mode-icon">📝</span><div><div class="mode-title" id="m-practice">Practice Quiz</div><div class="mode-desc" id="m-practice-d">10 random questions</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" style="background:#0033A0" onclick="startQuiz('mock')"><span class="mode-icon">🏆</span><div><div class="mode-title" id="m-mock">Full Mock Test</div><div class="mode-desc" id="m-mock-d">45 questions · real format</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" style="background:#5B2D8E" onclick="startQuiz('exam')"><span class="mode-icon">⏱️</span><div><div class="mode-title" id="m-exam">Exam Simulator</div><div class="mode-desc" id="m-exam-d">45 min · no hints · real conditions</div></div><span class="mode-arrow">›</span></button>
-    <button class="mode-btn" id="weak-btn" style="background:#00695C;display:none" onclick="startQuiz('weak')"><span class="mode-icon">🎯</span><div><div class="mode-title" id="m-weak">Weak Spots</div><div class="mode-desc" id="m-weak-d">Questions you've answered wrong</div></div><span class="mode-arrow">›</span></button>
+    <button class="mode-btn" id="weak-btn" style="background:#00695C;display:none" onclick="startQuiz('weak')"><span class="mode-icon">🎯</span><div><div class="mode-title" id="m-weak">Weak Spots</div><div class="mode-desc" id="m-weak-d">SM-2 priority review</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" style="background:#1a1a2e" onclick="startStudy()"><span class="mode-icon">🃏</span><div><div class="mode-title" id="m-flash">Flashcards</div><div class="mode-desc" id="m-flash-d">Study all topics</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" style="background:#AD1457" onclick="showHistory()"><span class="mode-icon">📈</span><div><div class="mode-title" id="m-hist">History</div><div class="mode-desc" id="m-hist-d">Past results &amp; scores</div></div><span class="mode-arrow">›</span></button>
     <div class="lbl" id="h-info-lbl">REAL TEST INFO</div>
     <div class="info-card" id="info-card"></div>
     <div class="stats">
-      <div class="stat"><div class="stat-n" id="bank-count">132</div><div class="stat-l" id="s1">Questions in bank</div></div>
+      <div class="stat"><div class="stat-n" id="bank-count">—</div><div class="stat-l" id="s1">Questions in bank</div></div>
       <div class="stat"><div class="stat-n">80%</div><div class="stat-l" id="s2">Pass mark (36/45)</div></div>
       <div class="stat"><div class="stat-n">10</div><div class="stat-l" id="s3">Values questions</div></div>
     </div>
   </div></div>
 </div>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     RIGHT PANEL — content screens (desktop) / normal screens (mobile)
+════════════════════════════════════════════════════════════════════════ -->
+<div id="right-panel">
+
+<!-- WELCOME (desktop right-panel default) -->
+<div id="screen-welcome" class="screen active">
+  <div class="hdr" style="background:var(--navy)">
+    <div class="hdr-top">
+      <div class="hdr-brand"><div class="flag"></div><div><div class="hdr-title">DANSK</div><div class="hdr-sub">Citizenship Test Prep</div></div></div>
+      <div class="toggles">
+        <button class="tbtn hs" id="lang-btn3" onclick="toggleLang()">🇩🇰 DA</button>
+        <button class="tbtn hs" id="dark-btn3" onclick="toggleDark()">🌙</button>
+      </div>
+    </div>
+    <div class="hdr-desc" id="w-desc">Select a mode from the left panel to begin.</div>
+  </div>
+  <div class="scroll-body"><div class="pad">
+    <div class="lbl" id="w-due-lbl">TODAY'S REVIEW</div>
+    <div class="info-card" id="w-due-card"></div>
+    <div class="lbl" id="w-mastery-lbl" style="display:none">MASTERY OVERVIEW</div>
+    <div class="mastery-grid" id="w-mastery-grid" style="display:none"></div>
+    <div class="lbl" id="w-info-lbl">ABOUT THE TEST</div>
+    <div class="info-card" id="w-info-card"></div>
+  </div></div>
+</div>
+
 <!-- QUIZ -->
 <div id="screen-quiz" class="screen">
   <div class="quiz-hdr">
     <div class="quiz-meta">
       <button class="back-link" onclick="goHome()">← <span id="q-home-lbl">Home</span></button>
-      <div class="pills"><span class="pill" id="q-cat-pill" style="color:white">—</span><span class="pill" id="q-type-pill" style="background:var(--tag);color:var(--tag-txt)">—</span><span class="pill" id="q-mode-pill" style="background:#5B2D8E;color:#fff;display:none">—</span></div>
+      <div class="pills">
+        <span class="pill" id="q-cat-pill" style="color:white">—</span>
+        <span class="pill" id="q-type-pill" style="background:var(--tag);color:var(--tag-txt)">—</span>
+        <span class="pill" id="q-mode-pill" style="background:#5B2D8E;color:#fff;display:none">—</span>
+      </div>
       <span style="font-size:13px;color:var(--sub);font-weight:600" id="q-counter">1/10</span>
     </div>
     <div class="prog-bar"><div class="prog-fill" id="q-prog" style="width:10%"></div></div>
   </div>
-  <div id="timer-bar" class="timer-bar" style="display:none"><span class="timer-label" id="timer-label">TIME REMAINING</span><span class="timer-txt" id="timer-txt">45:00</span></div>
+  <div id="timer-bar" class="timer-bar" style="display:none">
+    <span class="timer-label" id="timer-label">TIME REMAINING</span>
+    <span class="timer-txt" id="timer-txt">45:00</span>
+  </div>
   <div class="scroll-body">
     <div class="q-card"><div class="q-num" id="q-num"></div><p class="q-text" id="q-text">—</p></div>
     <div class="options" id="q-options"></div>
@@ -187,40 +317,74 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="exam-note" id="exam-note" style="display:none"></div>
   </div>
 </div>
+
 <!-- RESULTS -->
 <div id="screen-results" class="screen">
-  <div class="res-hdr" id="res-hdr"><div class="res-emoji" id="res-emoji">🎉</div><div class="res-title" id="res-title">Passed!</div><div class="res-sub" id="res-sub">You passed!</div>
-    <div class="score-box"><span class="score-num" id="res-score">—</span><span class="score-pct" id="res-pct">—</span><span class="score-val" id="res-val" style="display:none"></span></div>
+  <div class="res-hdr" id="res-hdr">
+    <div class="res-emoji" id="res-emoji">🎉</div>
+    <div class="res-title" id="res-title">Passed!</div>
+    <div class="res-sub" id="res-sub">You passed!</div>
+    <div class="score-box">
+      <span class="score-num" id="res-score">—</span>
+      <span class="score-pct" id="res-pct">—</span>
+      <span class="score-val" id="res-val" style="display:none"></span>
+    </div>
     <div class="mock-note" id="res-note" style="display:none"></div>
   </div>
-  <div class="share-row"><button class="share-btn" onclick="shareResult()">📤 Share Result</button><button class="share-btn" onclick="printStudySheet()">🖨️ Study Sheet</button></div>
+  <div class="share-row">
+    <button class="share-btn" onclick="shareResult()">📤 Share Result</button>
+    <button class="share-btn" onclick="printStudySheet()">🖨️ Study Sheet</button>
+  </div>
   <div class="scroll-body" style="padding-top:4px"><div class="pad">
     <div class="lbl" id="res-review-lbl">QUESTION REVIEW</div>
     <div id="review-list"></div>
-    <div style="display:flex;flex-direction:column;gap:10px"><button class="btn-primary" id="res-retry" onclick="retryQuiz()">Try Again</button><button class="btn-secondary" onclick="goHome()" id="res-home-btn">← Back to Home</button></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn-primary" id="res-retry" onclick="retryQuiz()">Try Again</button>
+      <button class="btn-secondary" onclick="goHome()" id="res-home-btn">← Back to Home</button>
+    </div>
   </div></div>
 </div>
+
 <!-- FLASHCARDS -->
 <div id="screen-study" class="screen">
   <div style="background:var(--card);padding:16px 18px 12px;box-shadow:0 2px 8px var(--sh)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <button class="back-link" onclick="goHome()">← <span id="s-home-lbl">Home</span></button>
-      <span style="font-size:13px;color:var(--sub);font-weight:600" id="s-counter">1/132</span>
-      <div class="toggles"><button class="tbtn inn" id="lang-btn2" onclick="toggleLang()">🇩🇰 DA</button><button class="tbtn inn" id="dark-btn2" onclick="toggleDark()">🌙</button></div>
+      <span style="font-size:13px;color:var(--sub);font-weight:600" id="s-counter">1/133</span>
+      <div class="toggles">
+        <button class="tbtn inn" id="lang-btn2" onclick="toggleLang()">🇩🇰 DA</button>
+        <button class="tbtn inn" id="dark-btn2" onclick="toggleDark()">🌙</button>
+      </div>
     </div>
-    <div style="display:flex;gap:7px"><span class="pill" id="s-cat-pill" style="color:white">—</span><span class="pill" id="s-type-pill" style="background:var(--tag);color:var(--tag-txt)">—</span></div>
+    <div style="display:flex;gap:7px">
+      <span class="pill" id="s-cat-pill" style="color:white">—</span>
+      <span class="pill" id="s-type-pill" style="background:var(--tag);color:var(--tag-txt)">—</span>
+    </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:18px 0">
     <div class="card-scene" onclick="flipCard()">
       <div class="card-inner" id="card-inner">
-        <div class="card-face" id="card-front"><div class="card-lbl" style="color:rgba(255,255,255,.6)" id="c-q-lbl">QUESTION</div><p class="card-q" id="c-question">—</p><p class="card-hint" id="c-hint">Tap to reveal answer</p></div>
-        <div class="card-face card-back"><div class="card-lbl" style="color:var(--sub)" id="c-a-lbl">ANSWER</div><p class="card-ans" id="c-answer">—</p><p class="card-exp" id="c-exp">—</p></div>
+        <div class="card-face" id="card-front">
+          <div class="card-lbl" style="color:rgba(255,255,255,.6)" id="c-q-lbl">QUESTION</div>
+          <p class="card-q" id="c-question">—</p>
+          <p class="card-hint" id="c-hint">Tap to reveal answer</p>
+        </div>
+        <div class="card-face card-back">
+          <div class="card-lbl" style="color:var(--sub)" id="c-a-lbl">ANSWER</div>
+          <p class="card-ans" id="c-answer">—</p>
+          <p class="card-exp" id="c-exp">—</p>
+        </div>
       </div>
     </div>
-    <div class="study-nav"><button class="nav-btn" id="prev-btn" onclick="prevCard()">‹ <span id="prev-lbl">Prev</span></button><div class="dots" id="dots"></div><button class="nav-btn" id="next-card-btn" onclick="nextCard()"><span id="next-lbl">Next</span> ›</button></div>
+    <div class="study-nav">
+      <button class="nav-btn" id="prev-btn" onclick="prevCard()">‹ <span id="prev-lbl">Prev</span></button>
+      <div class="dots" id="dots"></div>
+      <button class="nav-btn" id="next-card-btn" onclick="nextCard()"><span id="next-lbl">Next</span> ›</button>
+    </div>
     <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--sub);padding-bottom:24px" id="flip-hint">Tap card to flip</div>
   </div>
 </div>
+
 <!-- HISTORY -->
 <div id="screen-history" class="screen">
   <div style="background:var(--card);padding:16px 18px 12px;box-shadow:0 2px 8px var(--sh)">
@@ -232,142 +396,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
   <div class="scroll-body"><div class="pad" id="hist-list"></div></div>
 </div>
-</div>
+
+</div><!-- #right-panel -->
+</div><!-- #app -->
+
 <script>
-const Q=[
-{id:1,cat:"history",type:"cur",en:["In what year was Grundloven adopted?",["1814","1849","1901","1953"],1,"Grundloven was signed 5 June 1849 — now Constitution Day. It transformed Denmark from absolute to constitutional monarchy."],da:["I hvilket år blev Grundloven vedtaget?",["1814","1849","1901","1953"],1,"Grundloven blev underskrevet den 5. juni 1849. Den omdannede Danmark fra enevælde til konstitutionelt monarki."]},
-{id:2,cat:"history",type:"cur",en:["Which king Christianised Denmark c.965 AD?",["Gorm den Gamle","Harald Blåtand","Knud den Store","Valdemar I"],1,"Harald Bluetooth Christianised Denmark c.965 AD. The Bluetooth logo combines his runic initials H and B."],da:["Hvilken kong kristnede Danmark ca. 965 e.Kr.?",["Gorm den Gamle","Harald Blåtand","Knud den Store","Valdemar I"],1,"Harald Blåtand kristnede Danmark ca. 965 e.Kr. Bluetooth-logoet kombinerer hans runeinitialerer H og B."]},
-{id:3,cat:"history",type:"cur",en:["When did Danish women gain the right to vote?",["1906","1915","1920","1933"],1,"Women gained full national voting rights in 1915, making Denmark one of the world's first countries."],da:["Hvornår fik danske kvinder stemmeret?",["1906","1915","1920","1933"],1,"Kvinder fik fuld stemmeret i 1915 — Danmark var et af de første lande."]},
-{id:4,cat:"history",type:"cur",en:["Denmark joined what is now the EU in?",["1957","1973","1986","1995"],1,"Denmark joined the European Communities on 1 January 1973 after a referendum where 63% voted yes."],da:["Danmark tiltrådte det, der nu er EU, i?",["1957","1973","1986","1995"],1,"Danmark tiltrådte De Europæiske Fællesskaber den 1. januar 1973 efter en folkeafstemning med 63% ja."]},
-{id:5,cat:"history",type:"cur",en:["What happened on 9 April 1940?",["Denmark declared independence","Nazi Germany occupied Denmark","Denmark joined NATO","Denmark liberated Norway"],1,"Nazi Germany occupied Denmark on 9 April 1940. Liberation came 5 May 1945 — Befrielsesdag."],da:["Hvad skete der den 9. april 1940?",["Danmark erklærede uafhængighed","Nazityskland besatte Danmark","Danmark tiltrådte NATO","Danmark befriede Norge"],1,"Nazityskland besatte Danmark den 9. april 1940. Befrielsen kom den 5. maj 1945."]},
-{id:6,cat:"history",type:"cur",en:["Denmark joined NATO as a founding member in?",["1945","1949","1955","1961"],1,"Denmark signed the North Atlantic Treaty on 4 April 1949 as a founding member."],da:["Danmark tiltrådte NATO som stiftelsesmedlem i?",["1945","1949","1955","1961"],1,"Danmark underskrev den nordatlantiske traktat den 4. april 1949 som stiftelsesmedlem."]},
-{id:7,cat:"history",type:"cur",en:["Who wrote 'Out of Africa'?",["H.C. Andersen","Tove Ditlevsen","Karen Blixen","Søren Kierkegaard"],2,"Karen Blixen (1885–1962) wrote it in 1937. She also published as Isak Dinesen."],da:["Hvem skrev 'Den afrikanske farm'?",["H.C. Andersen","Tove Ditlevsen","Karen Blixen","Søren Kierkegaard"],2,"Karen Blixen (1885–1962) skrev den i 1937. Hun udgav også som Isak Dinesen."]},
-{id:8,cat:"history",type:"cur",en:["What act established absolute monarchy in Denmark in 1665?",["Grundloven","Lex Regia","Reform Act","Arveret"],1,"Lex Regia 1665 established absolute monarchy under Frederick III, in force until Grundloven 1849."],da:["Hvilken lov indførte enevældet i 1665?",["Grundloven","Lex Regia","Reform Act","Arveret"],1,"Lex Regia fra 1665 indførte enevældet under Frederik III — gældende til Grundloven 1849."]},
-{id:9,cat:"history",type:"cur",en:["When was Denmark's Liberation Day?",["8 May 1945","5 May 1945","9 April 1945","1 Jan 1945"],1,"Denmark was liberated from Nazi occupation on 5 May 1945, commemorated annually."],da:["Hvornår var Danmarks Befrielsesdag?",["8. maj 1945","5. maj 1945","9. april 1945","1. jan. 1945"],1,"Danmark blev befriet den 5. maj 1945. Befrielsesdagen mindes hvert år."]},
-{id:10,cat:"history",type:"cur",en:["Which philosopher is considered the father of existentialism and was Danish?",["Nietzsche","Søren Kierkegaard","Sartre","Camus"],1,"Søren Kierkegaard (1813–1855) wrote on faith, anxiety and individuality."],da:["Hvilken filosof betragtes som eksistentialismens fader og var dansk?",["Nietzsche","Søren Kierkegaard","Sartre","Camus"],1,"Søren Kierkegaard (1813–1855) skrev om tro, angst og individualitet."]},
-{id:11,cat:"history",type:"cur",en:["The Reformation came to Denmark in?",["1380","1536","1660","1789"],1,"The Protestant Reformation was officially introduced in 1536 under King Christian III."],da:["Reformationen kom til Danmark i?",["1380","1536","1660","1789"],1,"Den protestantiske reformation blev officielt indført i 1536 under kong Christian III."]},
-{id:12,cat:"history",type:"cur",en:["When did Greenland receive home rule?",["1953","1973","1979","1997"],2,"Greenland received home rule in 1979 and expanded self-governance (selvstyre) in 2009."],da:["Hvornår fik Grønland hjemmestyre?",["1953","1973","1979","1997"],2,"Grønland fik hjemmestyre i 1979 og udvidede selvstyre i 2009."]},
-{id:13,cat:"history",type:"cur",en:["Which Danish physicist won the Nobel Prize in 1922?",["H.C. Ørsted","Niels Bohr","Tycho Brahe","Bartholin"],1,"Niels Bohr won the Nobel Prize in Physics 1922 for his model of the atom."],da:["Hvilken dansk fysiker vandt Nobelprisen i 1922?",["H.C. Ørsted","Niels Bohr","Tycho Brahe","Bartholin"],1,"Niels Bohr vandt Nobelprisen i fysik 1922 for sin atommodel."]},
-{id:14,cat:"history",type:"cur",en:["The 1920 Schleswig referendums determined?",["Greenland's status","The border between Denmark and Germany","NATO membership","Women's suffrage"],1,"After WWI, 1920 referendums set the border. North Schleswig voted to reunite with Denmark."],da:["Hvad fastsatte Sønderjyllands afstemninger i 1920?",["Grønlands status","Grænsen mellem Danmark og Tyskland","NATO-medlemskab","Kvinders stemmeret"],1,"Efter 1. verdenskrig fastsatte afstemningerne i 1920 grænsen. Nordslesvig stemte for genforening."]},
-{id:15,cat:"history",type:"cur",en:["Denmark sold the Danish West Indies to the USA in?",["1902","1917","1930","1945"],1,"Denmark sold the Danish West Indies (now US Virgin Islands) for $25 million in 1917."],da:["Danmark solgte De Dansk Vestindiske Øer til USA i?",["1902","1917","1930","1945"],1,"Danmark solgte De Dansk Vestindiske Øer for 25 millioner dollars i 1917."]},
-{id:16,cat:"history",type:"cur",en:["Which king is known as 'the Great' and ruled England?",["Gorm den Gamle","Harald Blåtand","Knud den Store","Valdemar I"],2,"Knud den Store (Cnut the Great, c.995–1035) ruled Denmark, England and Norway."],da:["Hvilken kong kendes som 'den Store' og regerede England?",["Gorm den Gamle","Harald Blåtand","Knud den Store","Valdemar I"],2,"Knud den Store (ca. 995–1035) regerede Danmark, England og Norge."]},
-{id:17,cat:"history",type:"cur",en:["The Øresund Bridge opened in?",["1994","1998","2000","2005"],2,"The Øresund Bridge opened 1 July 2000, connecting Copenhagen with Malmö."],da:["Øresundsbroen åbnede i?",["1994","1998","2000","2005"],2,"Øresundsbroen åbnede den 1. juli 2000 og forbandt København med Malmö."]},
-{id:18,cat:"history",type:"cur",en:["H.C. Ørsted discovered what in 1820?",["Radioactivity","Electromagnetism","The electron","X-rays"],1,"Ørsted discovered in 1820 that electric currents create magnetic fields."],da:["H.C. Ørsted opdagede hvad i 1820?",["Radioaktivitet","Elektromagnetisme","Elektronen","Røntgenstråler"],1,"Ørsted opdagede i 1820, at elektriske strømme skaber magnetfelter."]},
-{id:19,cat:"history",type:"cur",en:["'Genforeningen' refers to?",["Denmark joining the EU","1920 reunification of North Schleswig with Denmark","Liberation in 1945","Joining NATO"],1,"Genforeningen refers to 1920 when North Schleswig voted to reunite with Denmark after German rule since 1864."],da:["'Genforeningen' refererer til?",["Danmarks tiltrædelse af EU","Genforening af Nordslesvig med Danmark i 1920","Befrielsen i 1945","Tiltrædelse af NATO"],1,"Genforeningen refererer til 1920, da Nordslesvig stemte for genforening efter tysk styre siden 1864."]},
-{id:20,cat:"history",type:"cur",en:["Denmark recognised same-sex partnerships (first in the world) in?",["1979","1989","1999","2009"],1,"Denmark became the first country to legally recognise same-sex partnerships in 1989. Same-sex marriage legalised in 2012."],da:["Danmark anerkendte registrerede partnerskaber (først i verden) i?",["1979","1989","1999","2009"],1,"Danmark blev det første land til at anerkende registrerede partnerskaber i 1989. Samkønnet ægteskab legaliseret i 2012."]},
-{id:21,cat:"history",type:"cur",en:["Dannebrog legend: the flag fell from sky during battle in?",["Sweden","Estonia","Germany","Poland"],1,"According to legend, Dannebrog fell from the sky during the Battle of Lyndanisse in Estonia in 1219."],da:["Dannebrog-legenden: flaget faldt fra himlen under kamp i?",["Sverige","Estland","Tyskland","Polen"],1,"Ifølge legenden faldt Dannebrog fra himlen under Slaget ved Lyndanisse i Estland i 1219."]},
-{id:22,cat:"history",type:"cur",en:["In which war was Denmark neutral?",["Napoleonic Wars","World War I","World War II","Franco-Prussian War"],1,"Denmark declared neutrality in WWI (1914–18) and stayed out, unlike WWII when it was occupied."],da:["I hvilken krig var Danmark neutralt?",["Napoleonskrigene","1. verdenskrig","2. verdenskrig","Den fransk-preussiske krig"],1,"Danmark erklærede neutralitet i 1. verdenskrig (1914–18) og forblev uden for konflikten."]},
-{id:23,cat:"history",type:"cur",en:["Which explorer established settlements in Greenland c.985 AD?",["Leif Eriksson","Erik den Røde","Ragnar Lodbrok","Rollo"],1,"Erik the Red sailed to Greenland c.985 AD and established the first Norse settlements there."],da:["Hvilken opdagelsesrejsende etablerede bosættelser i Grønland ca. 985 e.Kr.?",["Leif Eriksson","Erik den Røde","Ragnar Lodbrok","Rollo"],1,"Erik den Røde sejlede til Grønland ca. 985 e.Kr. og etablerede de første nordiske bosættelser."]},
-{id:24,cat:"history",type:"cur",en:["Viking ring fortresses like Trelleborg were built under?",["Gorm den Gamle","Harald Blåtand","Knud den Store","Valdemar II"],1,"Trelleborg and other ring fortresses were built c.980 AD during Harald Bluetooth's reign."],da:["Vikingborge som Trelleborg blev bygget under?",["Gorm den Gamle","Harald Blåtand","Knud den Store","Valdemar II"],1,"Trelleborg og andre ringborge blev bygget ca. 980 e.Kr. under Harald Blåtands regeringstid."]},
-{id:25,cat:"history",type:"cur",en:["Roskilde Cathedral is a UNESCO site because?",["It has Viking ships","39 Danish monarchs are buried there","It holds the original Grundlov","It's Scandinavia's largest church"],1,"Roskilde Cathedral is the burial place of 39 Danish kings and queens. Roskilde was Denmark's capital until the 15th century."],da:["Roskilde Domkirke er UNESCO-sted fordi?",["Den har vikingeskibe","39 danske monarker er begravet der","Den rummer den originale Grundlov","Det er Skandinaviens største kirke"],1,"Roskilde Domkirke er begravelsessted for 39 danske konger og dronninger."]},
-{id:26,cat:"gov",type:"cur",en:["What is the Danish parliament called?",["Riksdag","Folketing","Storting","Landsting"],1,"The Folketing has 179 members and sits at Christiansborg Palace, Copenhagen."],da:["Hvad hedder det danske parlament?",["Riksdag","Folketing","Storting","Landsting"],1,"Folketing har 179 medlemmer og holder til på Christiansborg Slot, København."]},
-{id:27,cat:"gov",type:"cur",en:["How many members does the Folketing have?",["149","169","179","200"],2,"175 from mainland + 2 from Greenland + 2 from Faroe Islands = 179 total."],da:["Hvor mange medlemmer har Folketing?",["149","169","179","200"],2,"175 fra fastlandet + 2 fra Grønland + 2 fra Færøerne = 179 i alt."]},
-{id:28,cat:"gov",type:"cur",en:["Minimum voting age for Folketing elections?",["16","17","18","21"],2,"You must be at least 18 to vote in Danish national elections."],da:["Minimumsalder for Folketing-valg?",["16","17","18","21"],2,"Man skal være mindst 18 år for at stemme ved danske nationale valg."]},
-{id:29,cat:"gov",type:"cur",en:["Elections must be held at least every?",["3 years","4 years","5 years","6 years"],1,"Elections must be held at least every 4 years. The PM can call them earlier."],da:["Valg skal afholdes mindst hvert?",["3. år","4. år","5. år","6. år"],1,"Der skal afholdes valg mindst hvert 4. år. Statsministeren kan udskrive det tidligere."]},
-{id:30,cat:"gov",type:"cur",en:["Where is the Folketing located?",["Amalienborg","Rosenborg","Fredensborg","Christiansborg"],3,"Christiansborg Palace on Slotsholmen houses the Folketing, Supreme Court and Royal household."],da:["Hvor er Folketing beliggende?",["Amalienborg","Rosenborg","Fredensborg","Christiansborg"],3,"Christiansborg Slot på Slotsholmen huser Folketing, Højesteret og Kongefamilien."]},
-{id:31,cat:"gov",type:"cur",en:["The Danish monarch's constitutional role?",["Governs directly","Ceremonial head of state; power with parliament","Appoints all ministers alone","Can veto laws permanently"],1,"The monarch is a ceremonial head of state. Real power lies with the elected Folketing and government."],da:["Den danske monarks konstitutionelle rolle?",["Regerer direkte","Ceremonielt statshoved; magten hos parlamentet","Udnævner alle ministre alene","Kan nedlægge veto permanent"],1,"Monarken er ceremonielt statshoved. Den reelle magt ligger hos Folketing og regeringen."]},
-{id:32,cat:"gov",type:"cur",en:["What does the Folketing Ombudsman do?",["Collects taxes","Investigates complaints about public administration","Leads armed forces","Appoints judges"],1,"The Ombudsman investigates complaints about public authorities, ensuring they act lawfully."],da:["Hvad gør Folketing Ombudsmanden?",["Opkræver skatter","Undersøger klager over den offentlige forvaltning","Leder de væbnede styrker","Udnævner dommere"],1,"Ombudsmanden undersøger klager over offentlige myndigheder og sikrer, at de handler lovligt."]},
-{id:33,cat:"gov",type:"cur",en:["Denmark's head of government is called?",["President","Prime Minister (Statsminister)","Chancellor","Premier"],1,"The Prime Minister (Statsminister) leads the cabinet and is formally appointed by the monarch."],da:["Danmarks regeringsleder hedder?",["Præsident","Statsminister","Kansler","Premier"],1,"Statsministeren leder kabinettet og udnævnes formelt af monarken."]},
-{id:34,cat:"gov",type:"cur",en:["Denmark's Supreme Court is called?",["Landsretten","Byret","Højesteret","Tinget"],2,"Højesteret is Denmark's highest court at Christiansborg, handling appeals on matters of principle."],da:["Danmarks Højesteret hedder?",["Landsretten","Byret","Højesteret","Tinget"],2,"Højesteret er Danmarks højeste domstol på Christiansborg."]},
-{id:35,cat:"gov",type:"cur",en:["How many regions does Denmark have?",["3","5","7","13"],1,"Denmark has 5 regions for healthcare: Capital, Zealand, Southern Denmark, Central Jutland, North Jutland."],da:["Hvor mange regioner har Danmark?",["3","5","7","13"],1,"Danmark har 5 regioner ansvarlige for sundhedsvæsenet."]},
-{id:36,cat:"gov",type:"cur",en:["Minimum threshold for a party to enter the Folketing?",["1%","2%","3%","5%"],1,"A party needs at least 2% of the national vote to win seats."],da:["Mindstegrænsen for et parti til Folketing?",["1%","2%","3%","5%"],1,"Et parti skal have mindst 2% af de nationale stemmer for at opnå mandater."]},
-{id:37,cat:"gov",type:"cur",en:["Denmark has how many municipalities?",["54","74","98","113"],2,"Denmark has 98 municipalities (kommuner) responsible for local services."],da:["Hvor mange kommuner har Danmark?",["54","74","98","113"],2,"Danmark har 98 kommuner ansvarlige for lokale services."]},
-{id:38,cat:"gov",type:"cur",en:["'Folkeafstemning' means?",["A local council meeting","A national referendum","A census","A committee"],1,"Folkeafstemning means referendum. Citizens vote directly on constitutional and EU matters."],da:["'Folkeafstemning' betyder?",["Et lokalt rådsmøde","En national folkeafstemning","En folketælling","Et udvalg"],1,"Folkeafstemning betyder referendum. Borgere stemmer direkte om forfatnings- og EU-spørgsmål."]},
-{id:39,cat:"gov",type:"cur",en:["The Faroe Islands' relationship with Denmark?",["A Danish county","Fully independent","Autonomous within the Kingdom of Denmark","Separate EU member"],2,"The Faroe Islands are autonomous within the Kingdom of Denmark, self-governing since 1948."],da:["Færøernes forhold til Danmark?",["En dansk amt","Fuldt uafhængige","Selvstyrende inden for Kongeriget Danmark","Selvstændigt EU-medlem"],2,"Færøerne er selvstyrende inden for Kongeriget Danmark med selvstyre siden 1948."]},
-{id:40,cat:"gov",type:"cur",en:["Denmark's electoral system?",["First past the post","Proportional representation","Two-round system","Electoral college"],1,"Denmark uses proportional representation: parties get seats proportional to vote share."],da:["Danmarks valgordning?",["Flertalsvalg","Forholdstalsvalg","To-runde-system","Valgmandskollegium"],1,"Danmark bruger forholdstalsvalg: partier modtager mandater proportionalt med stemmernes andel."]},
-{id:41,cat:"gov",type:"cur",en:["'Aktindsigt' means?",["Secrecy","Right of access to public documents","Annual report","Freedom of assembly"],1,"Aktindsigt gives citizens the right to access public documents, promoting government transparency."],da:["'Aktindsigt' betyder?",["Hemmeligholdelse","Ret til indsigt i offentlige dokumenter","Årsrapport","Forsamlingsfrihed"],1,"Aktindsigt giver borgere ret til at se offentlige dokumenter og fremmer åbenhed."]},
-{id:42,cat:"gov",type:"cur",en:["'Magtens tredeling' (separation of powers)?",["Denmark in three regions","Three branches: legislative, executive, judicial","Three tax levels","NATO structure"],1,"Three branches check each other: Folketing (legislative), government (executive), courts (judicial)."],da:["'Magtens tredeling'?",["Danmark opdelt i tre regioner","De tre statsmagter: lovgivende, udøvende, dømmende","De tre skatteniveauer","NATOs struktur"],1,"De tre statsmagter kontrollerer hinanden: Folketing (lovgivende), regering (udøvende), domstole (dømmende)."]},
-{id:43,cat:"gov",type:"cur",en:["Who formally appoints the Danish PM?",["The Folketing","The Supreme Court","The Monarch","The President"],2,"The monarch formally appoints the PM — by convention the leader who can command a parliamentary majority."],da:["Hvem udnævner formelt Danmarks statsminister?",["Folketing","Højesteret","Monarken","Præsidenten"],2,"Monarken udnævner formelt statsministeren — sædvanen tro den leder, der kan kommandere et flertal."]},
-{id:44,cat:"gov",type:"cur",en:["Which body can declare laws unconstitutional?",["The Folketing","The Prime Minister","Højesteret","The Ombudsman"],2,"Højesteret has the power of judicial review and can declare laws unconstitutional."],da:["Hvilket organ kan erklære love forfatningsstridige?",["Folketing","Statsministeren","Højesteret","Ombudsmanden"],2,"Højesteret har beføjelse til domstolsprøvelse og kan erklære love forfatningsstridige."]},
-{id:45,cat:"gov",type:"cur",en:["'Den sociale kontrakt' in Denmark describes?",["A formal employment contract","Citizens pay high taxes; state provides comprehensive welfare","A trade union agreement","A NATO commitment"],1,"The social contract: citizens pay high taxes and receive welfare including healthcare, education and unemployment support."],da:["'Den sociale kontrakt' i Danmark beskriver?",["En formel ansættelsesaftale","Borgere betaler høje skatter; staten giver velfærd","En fagforeningsaftale","En NATO-forpligtelse"],1,"Den sociale kontrakt: borgere betaler høje skatter og modtager velfærd inkl. sundhed og uddannelse."]},
-{id:46,cat:"geo",type:"cur",en:["Capital of Denmark?",["Aarhus","Odense","Aalborg","Copenhagen"],3,"Copenhagen (København) is the capital, with a metropolitan area of over 1.3 million."],da:["Danmarks hovedstad?",["Aarhus","Odense","Aalborg","København"],3,"København er hovedstaden med et storbyområde på over 1,3 millioner mennesker."]},
-{id:47,cat:"geo",type:"cur",en:["Which peninsula forms mainland Denmark?",["Scandinavian","Jutland (Jylland)","Iberian","Kola"],1,"Jutland forms mainland Denmark, bordering Germany. About 70% of Denmark's land area."],da:["Hvilken halvø udgør Danmarks fastland?",["Skandinaviske","Jylland","Iberiske","Kola"],1,"Jylland udgør Danmarks fastland og grænser til Tyskland. Ca. 70% af Danmarks landareal."]},
-{id:48,cat:"geo",type:"cur",en:["Largest island in Denmark?",["Funen (Fyn)","Bornholm","Lolland","Zealand (Sjælland)"],3,"Zealand (Sjælland, 7,031 km²) is the largest. Copenhagen is on its eastern coast."],da:["Største ø i Danmark?",["Fyn","Bornholm","Lolland","Sjælland"],3,"Sjælland (7.031 km²) er den største. København ligger på dens østkyst."]},
-{id:49,cat:"geo",type:"cur",en:["Denmark's only land neighbour?",["Sweden","Norway","Germany","Netherlands"],2,"Germany shares Denmark's only land border at the base of the Jutland Peninsula."],da:["Danmarks eneste landnabo?",["Sverige","Norge","Tyskland","Nederlandene"],2,"Tyskland deler Danmarks eneste landgrænse ved foden af Jylland."]},
-{id:50,cat:"geo",type:"cur",en:["Greenland's status in relation to Denmark?",["Independent country","Overseas department","Autonomous within the Kingdom of Denmark","Danish colony"],2,"Greenland has been autonomous within the Kingdom of Denmark since 1979 and left the EU in 1985."],da:["Grønlands status i forhold til Danmark?",["Selvstændigt land","Oversøisk departement","Selvstyrende inden for Kongeriget Danmark","Dansk koloni"],2,"Grønland har været selvstyrende inden for Kongeriget Danmark siden 1979 og forlod EU i 1985."]},
-{id:51,cat:"geo",type:"cur",en:["The strait between Denmark and Sweden?",["Kattegat","Skagerrak","Øresund","Storebælt"],2,"The Øresund separates Zealand from Sweden's Scania. The bridge (road+rail) opened in 2000."],da:["Strædet mellem Danmark og Sverige?",["Kattegat","Skagerrak","Øresund","Storebælt"],2,"Øresund adskiller Sjælland fra Skåne. Broen (vej+jernbane) åbnede i 2000."]},
-{id:52,cat:"geo",type:"cur",en:["What connects Zealand and Funen?",["Øresund Bridge","Great Belt Fixed Link","Fehmarn Belt Tunnel","Lillebælt Bridge"],1,"The Great Belt Fixed Link (opened 1997–98) connects Zealand and Funen."],da:["Hvad forbinder Sjælland og Fyn?",["Øresundsbroen","Storebæltsforbindelsen","Femern Bælt-tunnelen","Lillebæltsbroen"],1,"Storebæltsforbindelsen (åbnet 1997–98) forbinder Sjælland og Fyn."]},
-{id:53,cat:"geo",type:"cur",en:["Bornholm is known for?",["Being the largest island","Lying in the Baltic far east with its own dialect","Hosting the main airport","Being Denmark's old capital"],1,"Bornholm lies in the Baltic Sea far east of Denmark, closer to Sweden. Unique dialect and granite landscape."],da:["Bornholm er kendt for?",["At være den største ø","At ligge i Østersøen langt mod øst med sin egen dialekt","At have den vigtigste lufthavn","At have været Danmarks gamle hovedstad"],1,"Bornholm ligger i Østersøen, langt mod øst, tættere på Sverige. Unik dialekt og granitlandskab."]},
-{id:54,cat:"geo",type:"cur",en:["Denmark's second largest city?",["Odense","Aarhus","Aalborg","Esbjerg"],1,"Aarhus (pop. ~350,000) is Denmark's second largest city, the largest in Jutland."],da:["Danmarks næststørste by?",["Odense","Aarhus","Aalborg","Esbjerg"],1,"Aarhus (befolkning ca. 350.000) er Danmarks næststørste by og den største i Jylland."]},
-{id:55,cat:"geo",type:"cur",en:["Denmark's highest natural point?",["Himmelbjerget","Møns Klint","Yding Skovhøj","Gråkilde"],2,"Yding Skovhøj at 172.5m is Denmark's highest point. Denmark is notably flat."],da:["Danmarks højeste naturlige punkt?",["Himmelbjerget","Møns Klint","Yding Skovhøj","Gråkilde"],2,"Yding Skovhøj på 172,5 m er Danmarks højeste punkt. Danmark er bemærkelsesværdigt fladt."]},
-{id:56,cat:"geo",type:"cur",en:["The Faroe Islands are located?",["North Sea between Scotland and Iceland","Baltic Sea east of Sweden","Arctic north of Greenland","Mediterranean"],0,"The Faroe Islands lie in the North Atlantic between Scotland, Norway and Iceland."],da:["Færøerne er beliggende?",["Nordsøen, mellem Skotland og Island","Østersøen øst for Sverige","Ishavet nord for Grønland","Middelhavet"],0,"Færøerne ligger i Nordatlanten mellem Skotland, Norge og Island."]},
-{id:57,cat:"geo",type:"cur",en:["H.C. Andersen's birthplace?",["Copenhagen","Aarhus","Odense","Roskilde"],2,"Hans Christian Andersen was born in Odense on Funen in 1805."],da:["H.C. Andersens fødeby?",["København","Aarhus","Odense","Roskilde"],2,"H.C. Andersen blev født i Odense på Fyn i 1805."]},
-{id:58,cat:"geo",type:"cur",en:["Copenhagen's main airport?",["Billund","Aalborg","Kastrup","Roskilde"],2,"Copenhagen Airport, Kastrup is Scandinavia's largest airport, on Amager south of the city."],da:["Københavns vigtigste lufthavn?",["Billund","Aalborg","Kastrup","Roskilde"],2,"Københavns Lufthavn, Kastrup er Skandinaviens største lufthavn på Amager syd for byen."]},
-{id:59,cat:"geo",type:"cur",en:["Denmark has approximately how many islands?",["Over 100","Over 300","Over 700","Over 1000"],2,"Denmark has over 700 named islands, about 100 inhabited."],da:["Danmark har ca. hvor mange øer?",["Over 100","Over 300","Over 700","Over 1000"],2,"Danmark har over 700 navngivne øer, ca. 100 beboede."]},
-{id:60,cat:"geo",type:"cur",en:["What is 'Storebælt'?",["A hiking trail","Strait between Funen and Zealand","A region of Jutland","The Danish-German border"],1,"Storebælt (Great Belt) is the strait between Funen and Zealand, crossed by Storebæltsforbindelsen."],da:["Hvad er 'Storebælt'?",["En vandrerute","Strædet mellem Fyn og Sjælland","En region i Jylland","Den dansk-tyske grænse"],1,"Storebælt er strædet mellem Fyn og Sjælland. Storebæltsforbindelsen krydser det."]},
-{id:61,cat:"culture",type:"cur",en:["What is 'hygge'?",["A type of open sandwich","Coziness, warmth and togetherness","A folk dance","A Viking ritual"],1,"Hygge is a Danish/Norwegian concept of coziness, comfort, and contented togetherness."],da:["Hvad er 'hygge'?",["En type smørrebrød","Hygge, varme og samvær","En folkedans","Et vikingegravrituale"],1,"Hygge er et dansk/norsk begreb for tryghed, komfort og godt samvær."]},
-{id:62,cat:"culture",type:"cur",en:["Who wrote 'The Little Mermaid' and 'The Ugly Duckling'?",["Karen Blixen","Adam Oehlenschläger","H.C. Andersen","Søren Kierkegaard"],2,"Hans Christian Andersen (1805–1875) wrote fairy tales now in 125+ languages worldwide."],da:["Hvem skrev 'Den lille havfrue' og 'Den grimme ælling'?",["Karen Blixen","Adam Oehlenschläger","H.C. Andersen","Søren Kierkegaard"],2,"H.C. Andersen (1805–1875) skrev eventyr oversat til 125+ sprog."]},
-{id:63,cat:"culture",type:"cur",en:["Denmark's national anthem?",["Danmark, mit Fædreland","Der er et yndigt land","Kong Christian stod ved højen mast","Vi elsker dette landet"],1,"'Der er et yndigt land' — lyrics by Adam Oehlenschläger (1819), music by H.E. Krøyer."],da:["Danmarks nationalsang?",["Danmark, mit Fædreland","Der er et yndigt land","Kong Christian stod ved højen mast","Vi elsker dette landet"],1,"'Der er et yndigt land' — tekst af Adam Oehlenschläger (1819), musik af H.E. Krøyer."]},
-{id:64,cat:"culture",type:"cur",en:["What is 'smørrebrød'?",["A pastry","Open-faced sandwich on rye bread","A beer","A holiday"],1,"Smørrebrød is a traditional open-faced sandwich on rugbrød with toppings like herring or pâté."],da:["Hvad er 'smørrebrød'?",["Et bagværk","Åben sandwich på rugbrød","En øl","En helligdag"],1,"Smørrebrød er en åben sandwich på rugbrød med pålæg som sild eller leverpostej."]},
-{id:65,cat:"culture",type:"cur",en:["'Janteloven' is about?",["Respecting elders","Not thinking you're better than others","Environmentalism","Paying taxes"],1,"From Aksel Sandemose's 1933 novel — a Scandinavian norm against boasting or standing out."],da:["'Janteloven' handler om?",["At respektere ældre","Ikke at tro man er bedre end andre","Miljøbevidsthed","At betale skat"],1,"Fra Aksel Sandemoses roman fra 1933 — en skandinavisk norm mod at prale eller skille sig ud."]},
-{id:66,cat:"culture",type:"cur",en:["5 June (Grundlovsdag) celebrates?",["Liberation Day","Constitution Day","Christmas Eve","Midsummer"],1,"Constitution Day marks the signing of Grundloven in 1849. Parties hold speeches nationwide."],da:["5. juni (Grundlovsdag) fejrer?",["Befrielsesdag","Grundlovsdag","Juleaften","Midsommerdag"],1,"Grundlovsdag markerer underskrivelsen af Grundloven i 1849."]},
-{id:67,cat:"culture",type:"cur",en:["Official language of Denmark?",["Norwegian","Swedish","Danish (Dansk)","German"],2,"Danish is the official language. ~50,000 German-speaking Danes also have German as a recognised minority language."],da:["Officielt sprog i Danmark?",["Norsk","Svensk","Dansk","Tysk"],2,"Dansk er det officielle sprog. Ca. 50.000 tysksproget danskere har desuden tysk som anerkendt mindretalssprog."]},
-{id:68,cat:"culture",type:"cur",en:["The state church of Denmark?",["Roman Catholic","Reformed Church","Church of Denmark (Folkekirken)","Baptist Church"],2,"Folkekirken is the established Lutheran state church. About 74% of Danes are members."],da:["Danmarks statskirke?",["Romersk-katolsk","Reformert kirke","Folkekirken","Baptistkirke"],2,"Folkekirken er den etablerede lutherske statskirke. Ca. 74% af danskerne er medlemmer."]},
-{id:69,cat:"culture",type:"cur",en:["'Sankt Hans Aften' is?",["A harvest festival","Midsummer with bonfires on 23 June","A Christmas tradition","The monarch's birthday"],1,"Sankt Hans Aften on 23 June is midsummer in Denmark, featuring bonfires. A witch effigy is traditionally burned on top."],da:["'Sankt Hans Aften' er?",["En høstfest","Midtsommerfest med bål den 23. juni","En juletradition","Monarkens fødselsdag"],1,"Sankt Hans Aften den 23. juni er midtsommer i Danmark med bål. En heksedukke brændes traditionelt oven på bålet."]},
-{id:70,cat:"culture",type:"cur",en:["What is 'rugbrød'?",["Light wheat bread","Traditional dense dark rye bread","Sweet pastry","Crispbread"],1,"Rugbrød is a dense moist dark rye bread, central to Danish food culture. Used for smørrebrød and madpakke."],da:["Hvad er 'rugbrød'?",["Lyst hvedebrød","Traditionelt tæt mørkt rugbrød","Sødt bagværk","Knækbrød"],1,"Rugbrød er et tæt, fugtigt mørkt rugbrød, centralt i dansk madkultur. Bruges til smørrebrød og madpakken."]},
-{id:71,cat:"culture",type:"cur",en:["Danish design is known for?",["Baroque ornaments","Functional minimalist furniture (e.g. Arne Jacobsen)","Victorian style","Heavy industrial design"],1,"Danish design is world-famous for functional, beautiful minimalist furniture. Arne Jacobsen and Hans Wegner led the movement."],da:["Dansk design er kendt for?",["Barokke ornamenter","Funktionelt minimalistisk møbel (fx Arne Jacobsen)","Victoriansk stil","Tungt industrielt design"],1,"Dansk design er verdensberømt for funktionelt minimalistisk møbel. Arne Jacobsen og Hans Wegner ledede bevægelsen."]},
-{id:72,cat:"culture",type:"cur",en:["The Little Mermaid statue is located?",["National Museum","Copenhagen harbour waterfront","Tivoli Gardens","Kronborg Castle"],1,"The bronze statue by Edvard Eriksen (1913) sits at the Copenhagen waterfront."],da:["Den lille Havfrue-statuen er beliggende?",["Nationalmuseet","Københavns strandpromenade","Tivoli","Kronborg Slot"],1,"Bronzestatuen af Edvard Eriksen (1913) er ved Københavns strand."]},
-{id:73,cat:"culture",type:"cur",en:["Tivoli Gardens opened in?",["1813","1843","1903","1953"],1,"Tivoli opened in 1843 in central Copenhagen — one of the world's oldest amusement parks."],da:["Tivoli åbnede i?",["1813","1843","1903","1953"],1,"Tivoli åbnede i 1843 i centrum af København — en af verdens ældste forlystelsesparker."]},
-{id:74,cat:"culture",type:"cur",en:["'Fællesskab' in Danish culture means?",["Individual competition","Community, fellowship and shared belonging","Tax system","Immigration policy"],1,"Fællesskab (community/fellowship) is a core Danish value underlying the welfare model and social life."],da:["'Fællesskab' i dansk kultur betyder?",["Individuel konkurrence","Fællesskab, sammenhold og fælles tilhørsforhold","Skattesystem","Indvandringspolitik"],1,"Fællesskab er en central dansk værdi, der ligger til grund for velfærdsmodellen og det sociale liv."]},
-{id:75,cat:"culture",type:"cur",en:["'Folkehøjskole' is?",["A state university","Residential adult education school, no exams","A primary school","A vocational centre"],1,"Folkehøjskole is a uniquely Danish/Scandinavian residential school for adults — no exams, focus on personal development."],da:["'Folkehøjskole' er?",["Et statsuniversitet","Dansk/skandinavisk kostskole for voksne uden eksamen","En grundskole","Et erhvervsuddannelsescenter"],1,"Folkehøjskole er en unikt dansk/skandinavisk kostskole for voksne med fokus på personlig udvikling — uden eksamen."]},
-{id:76,cat:"culture",type:"cur",en:["Roskilde Festival is?",["A medieval fair","One of Europe's largest music festivals","A Viking market","A royal ceremony"],1,"Roskilde Festival (since 1971) is one of Europe's largest music festivals, drawing 130,000+ visitors."],da:["Roskilde Festival er?",["En middelalderlig messe","En af Europas største musikfestivaler","Et vikingemarked","En kongelig ceremoni"],1,"Roskilde Festival (siden 1971) er en af Europas største musikfestivaler med 130.000+ besøgende."]},
-{id:77,cat:"culture",type:"cur",en:["'Wienerbrød' is internationally known as?",["Rye bread","Danish pastry","Æbleskiver","Kringle"],1,"Wienerbrød is known internationally as 'Danish pastry'. The technique came from Austrian bakers in the 19th century."],da:["'Wienerbrød' er internationalt kendt som?",["Rugbrød","Dansk wienerbrød / 'Danish pastry'","Æbleskiver","Kringle"],1,"Wienerbrød er internationalt kendt som 'Danish pastry'. Teknikken kom fra østrigske bagere i det 19. århundrede."]},
-{id:78,cat:"culture",type:"cur",en:["New Nordic cuisine was pioneered by?",["Geranium","Kadeau","Noma","Kong Hans"],2,"Noma (opened 2003) revolutionised fine dining with local, foraged, fermented Nordic ingredients."],da:["Ny nordisk gastronomi var banebrydende ved?",["Geranium","Kadeau","Noma","Kong Hans"],2,"Noma (åbnet 2003) revolutionerede fin dining med lokale, vilde og fermenterede nordiske ingredienser."]},
-{id:79,cat:"culture",type:"cur",en:["'Fastelavn' is?",["A harvest festival","Pre-Lent carnival with costumes and 'slå katten af tønden'","A midsummer tradition","A Viking celebration"],1,"Fastelavn is Danish carnival, 7 weeks before Easter. Children dress up and hit a barrel to win sweets."],da:["'Fastelavn' er?",["En høstfest","Karneval før fasten med kostumer og 'slå katten af tønden'","En midsommertradition","En vikingefest"],1,"Fastelavn er dansk karneval, 7 uger før påske. Børn klæder sig ud og slår katten af tønden."]},
-{id:80,cat:"culture",type:"cur",en:["Carl Nielsen (1865–1931) is known for?",["10 piano sonatas","Six symphonies and operas including Maskarade","Three violin concertos","Folk songs only"],1,"Carl Nielsen is Denmark's greatest composer, known for six symphonies and operas Maskarade and Saul og David."],da:["Carl Nielsen (1865–1931) er kendt for?",["10 klaversonater","Seks symfonier og operaer inkl. Maskarade","Tre violinkoncerter","Kun folkesange"],1,"Carl Nielsen er Danmarks største komponist, kendt for seks symfonier og operaerne Maskarade og Saul og David."]},
-{id:81,cat:"rights",type:"cur",en:["CPR stands for?",["Civil Protection Registry","Central Person Register","Citizens' Public Record","Central Pension Register"],1,"Det Centrale Personregister — every resident gets a unique 10-digit CPR number for all public services."],da:["CPR står for?",["Civil Protection Registry","Det Centrale Personregister","Citizens' Public Record","Central Pension Register"],1,"Det Centrale Personregister — alle beboere får et unikt 10-cifret CPR-nummer til alle offentlige ydelser."]},
-{id:82,cat:"rights",type:"cur",en:["Language test for Danish citizenship?",["Prøve i Dansk 2","Prøve i Dansk 3 (PD3)","Studieprøven","A1 test"],1,"PD3 tests Danish at ~B1–B2 level, higher than PD2 which is for permanent residence only."],da:["Sprogprøve til dansk statsborgerskab?",["Prøve i Dansk 2","Prøve i Dansk 3 (PD3)","Studieprøven","A1-test"],1,"PD3 tester dansk på ca. B1–B2 niveau — højere end PD2, som kun kræves til permanent opholdstilladelse."]},
-{id:83,cat:"rights",type:"cur",en:["Standard VAT (moms) in Denmark?",["15%","20%","25%","30%"],2,"Denmark's VAT is 25% — one of the EU's highest, always included in listed prices."],da:["Normal momssats i Danmark?",["15%","20%","25%","30%"],2,"Danmarks moms er 25% — en af EU's højeste, altid inkluderet i angivne priser."]},
-{id:84,cat:"rights",type:"cur",en:["What is 'folkeskolen'?",["A folk museum","Public school grades 0–9","A university","A vocational centre"],1,"Denmark's unified public school covering grades 0–9 (ages 6–16). Attendance is compulsory."],da:["Hvad er 'folkeskolen'?",["Et folkemuseum","Offentlig skole 0.–9. klasse","Et universitet","Et erhvervscenter"],1,"Danmarks samlede offentlige skole dækker klasse 0–9 (alder 6–16). Skolegang er obligatorisk."]},
-{id:85,cat:"rights",type:"cur",en:["'Dagpenge' refers to?",["Daily newspaper","Unemployment benefits","Child allowance","Pension"],1,"Dagpenge are unemployment benefits paid through an A-kasse when a member loses their job."],da:["'Dagpenge' refererer til?",["Dagblad","Arbejdsløshedsunderstøttelse","Børnepenge","Pension"],1,"Dagpenge er understøttelse via A-kasse, når et medlem mister sit job."]},
-{id:86,cat:"rights",type:"cur",en:["'Opholdstilladelse' means?",["Citizenship","Civil registration","Residence permit","Work permit"],2,"Opholdstilladelse means residence permit. A permanent one is typically required before applying for citizenship."],da:["'Opholdstilladelse' betyder?",["Statsborgerskab","Folkeregistrering","Opholdstilladelse","Arbejdstilladelse"],2,"Opholdstilladelse er tilladelse til at bo i landet. En permanent kræves typisk inden ansøgning om statsborgerskab."]},
-{id:87,cat:"rights",type:"cur",en:["'SU' (Statens Uddannelsesstøtte) is?",["A housing benefit","State education grant for students","A pension supplement","Parental leave"],1,"SU is the Danish state education grant for students 18+. One of the world's most generous systems."],da:["'SU' er?",["En boligydelse","Statsligt uddannelsesstipendium til studerende","Et pensionstillæg","Barsel"],1,"SU er det statslige uddannelsesstipendium til studerende fra 18 år. Et af verdens mest generøse systemer."]},
-{id:88,cat:"rights",type:"cur",en:["'Barselsorlov' means?",["Annual leave","Parental leave","Sick leave","Unpaid leave"],1,"Barselsorlov is parental leave. Both parents are entitled. Denmark has one of the world's most generous systems."],da:["'Barselsorlov' betyder?",["Ferie","Forældreorlov (barsel)","Sygeorlov","Ulønnet orlov"],1,"Barselsorlov er forældreorlov. Begge forældre har ret. Danmark har et af verdens mest generøse barselssystemer."]},
-{id:89,cat:"rights",type:"cur",en:["The yellow 'sundhedskort' entitles you to?",["Pharmacy discounts","Free GP access and public healthcare","Hospital loyalty benefits","Social security"],1,"The yellow health card links to your CPR number and entitles you to free access to GP and public healthcare."],da:["Det gule 'sundhedskort' giver ret til?",["Apotekerrabatter","Gratis adgang til læge og offentligt sundhedsvæsen","Hospitalsloyalitetsfordele","Socialsikring"],1,"Det gule sundhedskort er knyttet til dit CPR-nummer og giver ret til gratis adgang til læge og sundhedsvæsen."]},
-{id:90,cat:"rights",type:"cur",en:["'Flexicurity' is?",["Flexible working hours","Labour model: flexible hiring/firing + generous unemployment benefits","A pension type","A housing benefit"],1,"Denmark's labour model: employers can hire/fire flexibly, workers get generous unemployment benefits, state provides job support."],da:["'Fleksicurity' er?",["Fleksible arbejdstider","Arbejdsmarkedsmodel: fleksibel ansæt/afskedig + generøse dagpenge","En pensionstype","En boligydelse"],1,"Danmarks arbejdsmarkedsmodel: fleksibel ansættelse/afskedigelse, generøse dagpenge og aktiv jobsupport."]},
-{id:91,cat:"values",type:"val",en:["Denmark's approach to freedom of speech?",["Absolute — no restrictions","Fundamental right with legal limits e.g. on hate speech","Citizens only","Requires government approval"],1,"Ytringsfrihed is protected by the Constitution but hate speech and threats remain illegal."],da:["Danmarks tilgang til ytringsfrihed?",["Absolut — ingen begrænsninger","Grundlæggende rettighed med juridiske grænser fx mod hadefuld tale","Kun borgere","Kræver statslig godkendelse"],1,"Ytringsfrihed er beskyttet af Grundloven, men hadefuld tale og trusler er stadig ulovlige."]},
-{id:92,cat:"values",type:"val",en:["Gender equality (ligestilling) means?",["Men and women have equal rights and opportunities","Men are primary breadwinners by law","Women must prioritise family","Equal pay in public sector only"],0,"Ligestilling means equal rights in law, work, family and politics. Denmark ranks among world leaders."],da:["Ligestilling betyder?",["Mænd og kvinder har lige rettigheder og muligheder","Mænd er ved lov primære forsørgere","Kvinder skal prioritere familie","Kun ligeløn i offentlig sektor"],0,"Ligestilling betyder lige rettigheder inden for lov, arbejde, familie og politik."]},
-{id:93,cat:"values",type:"val",en:["What protects individuals from government overreach?",["The Church","Independent courts and a free press","The royal family","Trade unions"],1,"Independent courts and a free press are vital checks on power. The Constitution protects civil liberties."],da:["Hvad beskytter individer mod statslig magtmisbrug?",["Kirken","Uafhængige domstole og en fri presse","Kongefamilien","Fagforeninger"],1,"Uafhængige domstole og en fri presse er vitale kontrolmekanismer. Grundloven beskytter borgerlige rettigheder."]},
-{id:94,cat:"values",type:"val",en:["Equality before the law (lighed for loven) means?",["Wealthy get better outcomes","All people equal regardless of background","The monarch is above the law","Only citizens have full rights"],1,"All people — citizens and residents — have equal rights before Danish courts. No one is above the law."],da:["Lighed for loven betyder?",["Velhavende klarer sig bedre","Alle er lige for loven uanset baggrund","Monarken er hævet over loven","Kun borgere har fulde rettigheder"],1,"Alle mennesker — borgere og beboere — har lige rettigheder for danske domstole. Ingen er hævet over loven."]},
-{id:95,cat:"values",type:"val",en:["The Danish welfare model balances?",["State control of all life","Individual freedom + high taxes fund universal security","Unconditional loyalty to the state","No state role in private life"],1,"Extensive individual freedoms paired with high taxes funding a comprehensive welfare state for all."],da:["Den danske velfærdsmodel balancerer?",["Statslig kontrol af alt","Individuel frihed + høje skatter finansierer universel tryghed","Ubetinget loyalitet over for staten","Ingen statslig rolle i privatlivet"],1,"Omfattende individuelle friheder parres med høje skatter der finansierer en velfærdsstat for alle."]},
-{id:96,cat:"current",type:"news",en:["What was notable about the Social Democrats' result in the March 2026 Danish election?",["They won an outright majority","It was their worst result in over 120 years","They lost to the blue bloc","They merged with the Moderates"],1,"The Social Democrats won just 21.9% — their worst result since 1903. Neither bloc won a majority, leaving the Moderates as kingmakers in coalition talks."],da:["Hvad var bemærkelsesværdigt ved Socialdemokratiets resultat ved valget i marts 2026?",["De vandt absolut flertal","Det var deres dårligste resultat i over 120 år","De tabte til blå blok","De fusionerede med Moderaterne"],1,"Socialdemokratiet fik kun 21,9% — deres dårligste resultat siden 1903. Ingen blok fik flertal, og Moderaterne blev kongemagere."]},
-{id:97,cat:"current",type:"news",en:["Greenland major news in 2025?",["Declared independence","US President Trump sought to acquire Greenland","Greenland joined the EU","Major oil field discovered"],1,"In early 2025, Trump repeatedly expressed interest in the US acquiring Greenland, causing major diplomatic tensions."],da:["Grønlands store nyhed i 2025?",["Erklærede uafhængighed","Trump ønskede at USA erhverver Grønland","Grønland tiltrådte EU","Stort oliefelt opdaget"],1,"I begyndelsen af 2025 udtrykte Trump gentagne gange interesse for at USA erhverver Grønland."]},
-{id:98,cat:"current",type:"news",en:["The Fehmarn Belt Fixed Link connects Denmark to?",["Sweden","Norway","Germany","Poland"],2,"An 18 km undersea tunnel between Rødbyhavn (DK) and Puttgarden (DE). Expected ~2029."],da:["Femern Bælt-forbindelsen forbinder Danmark med?",["Sverige","Norge","Tyskland","Polen"],2,"En 18 km undervandstunnel mellem Rødbyhavn (DK) og Puttgarden (DE). Forventet ca. 2029."]},
-{id:99,cat:"current",type:"news",en:["Denmark's defence spending target pledged in 2025?",["1% GDP","2% GDP","3% GDP","4% GDP"],2,"Denmark pledged to raise defence spending to 3% of GDP, well above NATO's 2% target."],da:["Danmarks forsvarsmål afgivet i 2025?",["1% af BNP","2% af BNP","3% af BNP","4% af BNP"],2,"Danmark forpligtede sig til at hæve forsvarsudgifterne til 3% af BNP — langt over NATOs 2%-mål."]},
-{id:100,cat:"current",type:"news",en:["Denmark's main public broadcaster?",["TV2","DR (Danmarks Radio)","Politiken","Berlingske"],1,"DR (Danmarks Radio) is state-funded Denmark's main public broadcaster."],da:["Danmarks primære public service-broadcaster?",["TV2","DR (Danmarks Radio)","Politiken","Berlingske"],1,"DR er statsfinansieret og Danmarks primære public service-broadcaster."]},
-{id:101,cat:"history",type:"cur",en:["'Konfirmation' in Denmark is?",["Catholic sacrament only","Coming-of-age ceremony at ~14–15","A graduation ceremony","A legal requirement"],1,"Konfirmation is a coming-of-age celebration at ~14–15 in the Lutheran church or as a civil ceremony."],da:["'Konfirmation' i Danmark er?",["Udelukkende et katolsk sakramente","Bekræftelsesceremoni ca. 14–15","En dimissionsfejring","Et lovkrav"],1,"Konfirmation er en voksenbliven-fejring ca. 14–15 år i den lutherske kirke eller som civil ceremoni."]},
-{id:102,cat:"rights",type:"cur",en:["'Folkeregisteret' is?",["National tax register","Civil registration where residents register their address","Business register","Criminal records"],1,"Folkeregisteret is Denmark's civil registration system. All residents register their address, linked to CPR."],da:["'Folkeregisteret' er?",["Nationalt skatteregistre","Borgerligt registreringssystem, hvor beboere registrerer adresse","Virksomhedsregistret","Strafferegister"],1,"Folkeregisteret er Danmarks borgerlige registreringssystem. Alle beboere registrerer adresse — knyttet til CPR."]},
-{id:103,cat:"culture",type:"cur",en:["'Æbleskiver' are?",["A type of apple cider","Round fluffy pancake balls eaten at Christmas","An open sandwich","A Viking game"],1,"Æbleskiver are round fluffy pancake balls in a special pan, traditionally eaten at Christmas with sugar and jam."],da:["'Æbleskiver' er?",["En type æblecider","Runde, luftige pandekagekuler spist til jul","Et smørrebrød","Et vikingespil"],1,"Æbleskiver er runde, luftige pandekagekuler — traditionelt spist til jul med flormelis og syltetøj."]},
-{id:104,cat:"rights",type:"cur",en:["'A-kasse' provides?",["Tax collection","Unemployment insurance and job-seeking support","Pension management","Work hour regulation"],1,"An a-kasse provides dagpenge to members who lose their job and supports them in finding new work."],da:["'A-kasse' giver?",["Skatteindkrævning","Arbejdsløshedsforsikring og jobsøgningsstøtte","Pensionsstyring","Regulering af arbejdstimer"],1,"En a-kasse udbetaler dagpenge til medlemmer, der mister jobbet og støtter dem i at finde nyt arbejde."]},
-{id:105,cat:"culture",type:"cur",en:["'Madpakke' means?",["A food delivery service","A packed lunch","A recipe","A supermarket"],1,"Madpakke is a packed lunch, usually with rugbrød sandwiches — a deeply ingrained Danish habit."],da:["'Madpakke' betyder?",["En madleveringsservice","En medbragt frokost","En opskrift","Et supermarked"],1,"Madpakke er en medbragt frokost, typisk med rugbrødssmørrebrød — en dybt rodfæstet dansk vane."]},
-{id:106,cat:"gov",type:"cur",en:["SKAT / Skatteforvaltningen is?",["A VAT on food","The Danish Tax Agency","A type of fine","A credit agency"],1,"SKAT is Denmark's tax authority (now Skatteforvaltningen), collecting taxes, VAT and customs."],da:["SKAT / Skatteforvaltningen er?",["En moms på mad","Den danske skattemyndighed","En type bøde","Et kreditbureau"],1,"SKAT er Danmarks skattemyndighed (nu Skatteforvaltningen), der opkræver skatter, moms og told."]},
-{id:107,cat:"history",type:"cur",en:["Denmark abolished the death penalty completely in?",["1933","1945","1978","1990"],2,"Denmark abolished it for ordinary crimes in 1933 and completely (including wartime) in 1978."],da:["Danmark afskaffede fuldstændigt dødsstraffen i?",["1933","1945","1978","1990"],2,"Danmark afskaffede dødsstraffen for almindelige forbrydelser i 1933 og fuldstændigt i 1978."]},
-{id:108,cat:"culture",type:"cur",en:["'Frit Danmark' was?",["A TV channel","An underground resistance newspaper during WWII","A political party","A children's book series"],1,"Frit Danmark was a key underground resistance newspaper during the German occupation 1940–45."],da:["'Frit Danmark' var?",["En TV-kanal","En underjordisk modstandsavis under 2. verdenskrig","Et politisk parti","En børnebogsserie"],1,"Frit Danmark var en af de vigtigste underjordiske modstandsaviser under den tyske besættelse 1940–45."]},
-{id:109,cat:"culture",type:"cur",en:["Dannebrog is notable as?",["The world's largest flag","One of the world's oldest flags still in use","The only square flag","Designed by H.C. Andersen"],1,"Dannebrog is one of the world's oldest national flags still in continuous use."],da:["Dannebrog er bemærkelsesværdigt som?",["Verdens største nationalflag","Et af verdens ældste nationale flag stadig i brug","Det eneste kvadratiske flag","Designet af H.C. Andersen"],1,"Dannebrog er et af verdens ældste nationale flag stadig i kontinuerlig brug."]},
-{id:110,cat:"rights",type:"cur",en:["'Aktiv beskæftigelsespolitik' means?",["Tax on employment","Active policy: state helps unemployed find work","A minimum wage law","A union right"],1,"Active employment policy: the state requires and supports job seeking and retraining, not just passive benefits."],da:["'Aktiv beskæftigelsespolitik' betyder?",["Skat på beskæftigelse","Aktiv politik: staten hjælper arbejdsløse med at finde arbejde","En mindstelønslov","En fagforeningsrettighed"],1,"Aktiv beskæftigelsespolitik: staten kræver og støtter jobsøgning og omskoling, ikke bare passive dagpenge."]},
-{id:111,cat:"culture",type:"cur",en:["'Nytårsdag' is?",["25 December","1 January","5 June","5 May"],1,"Nytårsdag (New Year's Day) is 1 January, a public holiday. New Year's Eve features the monarch's speech and fireworks."],da:["'Nytårsdag' er?",["25. december","1. januar","5. juni","5. maj"],1,"Nytårsdag er den 1. januar, en helligdag. Nytårsaften byder på monarkens tale og fyrværkeri."]},
-{id:112,cat:"gov",type:"cur",en:["'Rådhuset' is?",["The parliament","The city/town hall — seat of local government","The royal palace","The supreme court"],1,"Rådhuset is the town hall, seat of the municipal council. Copenhagen's Rådhus (1905) is one of Denmark's most famous buildings."],da:["'Rådhuset' er?",["Parlamentet","Rådhuset — sæde for den lokale regering","Det kongelige palads","Højesteret"],1,"Rådhuset er kommunens administrative center. Københavns Rådhus (1905) er en af Danmarks mest kendte bygninger."]},
-{id:113,cat:"history",type:"cur",en:["The Viking Age primarily ran from?",["5th–7th century","8th–11th century","12th–14th century","15th–17th century"],1,"The Viking Age ran from the late 8th century (first raids c.793) to the 11th century."],da:["Vikingetiden strakte sig primært fra?",["5.–7. århundrede","8.–11. århundrede","12.–14. århundrede","15.–17. århundrede"],1,"Vikingetiden strakte sig fra det sene 8. århundrede (første raid ca. 793) til det 11. århundrede."]},
-{id:114,cat:"rights",type:"cur",en:["How is Danish healthcare mainly funded?",["Private insurance","Taxes — free at point of use","50% co-payments","Personal savings accounts"],1,"Danish healthcare is primarily tax-funded and free at point of use — covering GPs, hospitals and most specialist care."],da:["Hvordan finansieres dansk sundhedsvæsen primært?",["Privat forsikring","Skatter — gratis ved brug","50% egenbetaling","Personlige opsparingskonti"],1,"Dansk sundhedsvæsen er primært skattefinansieret og gratis ved brug for beboere."]},
-{id:115,cat:"rights",type:"cur",en:["'Folkepension' is?",["A private pension","State old-age pension from age 67 for all residents","Employer pension contribution","Civil servant pension only"],1,"Folkepension is the Danish state pension paid to all residents from age 67, regardless of work history."],da:["'Folkepension' er?",["En privat pension","Statslig alderspension fra 67 år til alle beboere","Arbejdsgiverpensionsbidrag","Kun tjenestemandspension"],1,"Folkepension er den danske statspension til alle beboere fra 67 år, uanset arbejdshistorie."]},
-{id:116,cat:"rights",type:"cur",en:["'Boligstøtte' is?",["A home loan","Housing benefit subsidy for low-income residents","Property tax","Building permit"],1,"Boligstøtte is a housing benefit (rent subsidy) paid to low-income residents, means-tested and municipally administered."],da:["'Boligstøtte' er?",["Et boliglån","Boligydelse til beboere med lav indkomst","Ejendomsskat","Byggetilladelse"],1,"Boligstøtte er en boligydelse til beboere med lav indkomst. Den er behovsprøvet og kommunalt administreret."]},
-{id:117,cat:"culture",type:"cur",en:["'Grundlovsdag' is a public holiday on?",["1 January","5 May","5 June","25 December"],2,"Grundlovsdag on 5 June commemorates the signing of Grundloven in 1849."],da:["'Grundlovsdag' er en helligdag den?",["1. januar","5. maj","5. juni","25. december"],2,"Grundlovsdag den 5. juni mindes underskrivelsen af Grundloven i 1849."]},
-{id:118,cat:"rights",type:"cur",en:["'Integrationslov' sets out?",["Trade regulations","Requirements and support for immigrants integrating into Danish society","Border control rules","Citizenship test rules only"],1,"The Integration Act sets rights and responsibilities for newly arrived immigrants, including language training."],da:["'Integrationslov' fastsætter?",["Handelsregler","Krav og støtte til indvandreres integration i dansk samfund","Grænsekontrollen","Kun regler for statsborgerskabsprøven"],1,"Integrationsloven fastsætter rettigheder og pligter for nyankomne indvandrere inkl. sprogundervisning."]},
-{id:119,cat:"culture",type:"cur",en:["'Konfirmation' in Denmark is typically at age?",["10–11","12–13","14–15","17–18"],2,"Konfirmation is a coming-of-age ceremony at ~14–15 in the Lutheran church, or as a civil 'humanist' ceremony."],da:["'Konfirmation' i Danmark er typisk i alderen?",["10–11","12–13","14–15","17–18"],2,"Konfirmation er en voksenbliven-ceremoni ca. 14–15 år i den lutherske kirke eller som civil 'humanistisk' ceremoni."]},
-{id:120,cat:"history",type:"cur",en:["Queen Margrethe II reigned for how many years before abdicating in 2024?",["30 years","42 years","52 years","60 years"],2,"Margrethe II acceded on 14 January 1972 and abdicated exactly 52 years later — the first voluntary Danish abdication in nearly 900 years."],da:["Dronning Margrethe II regerede i hvor mange år inden abdikationen i 2024?",["30 år","42 år","52 år","60 år"],2,"Margrethe II tiltrådte den 14. januar 1972 og abdicerede præcis 52 år senere — den første frivillige danske abdikation i næsten 900 år."]},
-{id:121,cat:"current",type:"news",en:["Who became King of Denmark on 14 January 2024?",["Christian X","Frederik X","Joachim I","Christian XI"],1,"Frederik X acceded after Queen Margrethe II abdicated — the first voluntary Danish abdication in nearly 900 years. His wife Mary became Queen Consort."],da:["Hvem blev Danmarks konge den 14. januar 2024?",["Christian X","Frederik X","Joachim I","Christian XI"],1,"Frederik X tiltrådte efter dronning Margrethe IIs abdikation. Hans hustru Mary blev dronning."]},
-{id:122,cat:"current",type:"news",en:["Why did Queen Margrethe II abdicate in January 2024?",["She was forced out by parliament","She cited health issues following major back surgery","She wanted to travel abroad permanently","She reached the mandatory retirement age"],1,"Margrethe announced her abdication on New Year's Eve 2023, citing back surgery and the need to pass responsibility to the next generation. She reigned for 52 years."],da:["Hvorfor abdicerede dronning Margrethe II i januar 2024?",["Hun blev tvunget ud af parlamentet","Hun nævnte helbredsproblemer efter større rygoperation","Hun ville rejse permanent til udlandet","Hun nåede den obligatoriske pensionsalder"],1,"Margrethe annoncerede sin abdikation nytårsaften 2023, med rygoperation som årsag. Hun regerede i 52 år."]},
-{id:123,cat:"current",type:"news",en:["What role did the Moderates play in the 2026 Danish election?",["They won the election outright","They became kingmakers with 14 seats, able to tip either bloc into a majority","They joined the red bloc","They were eliminated below the 2% threshold"],1,"Lars Løkke Rasmussen's Moderates won 14 seats. With neither red nor blue bloc reaching 90 seats, the Moderates held the balance of power."],da:["Hvilken rolle spillede Moderaterne ved valget i 2026?",["De vandt valget klart","De blev kongemagere med 14 mandater, i stand til at tippe begge blokke","De tilsluttede sig rød blok","De blev elimineret under 2%-grænsen"],1,"Lars Løkke Rasmussens Moderaterne vandt 14 mandater. Med hverken rød eller blå blok over 90 mandater sad Moderaterne på magten."]},
-{id:124,cat:"current",type:"news",en:["King Frederik X updated Denmark's royal coat of arms in 2025 to do what?",["Remove the crown symbol","Make the symbols of Greenland and the Faroe Islands more prominent","Add a new Nordic cross","Modernise it with a simpler design"],1,"By royal decree in January 2025, Frederik X made the Greenland and Faroe Islands symbols larger and more prominent, reflecting the unity of the Kingdom of Denmark."],da:["Kong Frederik X opdaterede Danmarks kongelige våbenskjold i 2025 for at gøre hvad?",["Fjerne kronesymbolet","Gøre symbolerne for Grønland og Færøerne mere fremtrædende","Tilføje et nyt nordisk kors","Modernisere det med et enklere design"],1,"Ved kongelig dekret i januar 2025 gjorde Frederik X symbolerne for Grønland og Færøerne større og mere fremtrædende."]},
-{id:125,cat:"current",type:"news",en:["What is the Folketing's majority threshold?",["75 seats","85 seats","90 seats","100 seats"],2,"90 of the 179 seats are required for a majority in the Folketing. Coalition governments are the norm under proportional representation."],da:["Hvad er Folketingets flertalsgrænse?",["75 mandater","85 mandater","90 mandater","100 mandater"],2,"90 af de 179 mandater kræves for flertal i Folketing. Koalitionsregeringer er normen under forholdstalsvalg."]},
-{id:126,cat:"values",type:"val",en:["What does 'religionsfrihed' (freedom of religion) mean in Denmark?",["Only Christianity is permitted","People are free to practise any religion or none","Religion is banned from public life","The state church is mandatory for all citizens"],1,"Freedom of religion is guaranteed by the Constitution. Danes may practise any religion, or none. The Folkekirke is the state church but membership is voluntary."],da:["Hvad betyder 'religionsfrihed' i Danmark?",["Kun kristendom er tilladt","Folk er frie til at praktisere enhver religion eller ingen","Religion er forbudt i det offentlige liv","Statskirken er obligatorisk for alle borgere"],1,"Religionsfrihed er garanteret af Grundloven. Danskere må praktisere enhver religion eller ingen. Folkekirken er statskirken, men medlemskab er frivilligt."]},
-{id:127,cat:"values",type:"val",en:["What does 'forsamlingsfrihed' (freedom of assembly) protect?",["Only political parties may organise","The right to gather peacefully without needing state permission","Trade unions only","Religious gatherings only"],1,"Freedom of assembly protects the right to gather peacefully for any lawful purpose — demonstrations, meetings, organisations — without needing state approval."],da:["Hvad beskytter 'forsamlingsfrihed'?",["Kun politiske partier må organisere sig","Retten til fredelig forsamling uden statslig tilladelse","Kun fagforeninger","Kun religiøse sammenkomster"],1,"Forsamlingsfrihed beskytter retten til fredelig forsamling til ethvert lovligt formål — uden statslig tilladelse."]},
-{id:128,cat:"values",type:"val",en:["In Denmark, children's rights include?",["No legal rights until age 18","Protection from abuse, right to education, and right to be heard in decisions affecting them","Parents have absolute authority","Only citizens' children have rights"],1,"Danish law protects children's rights including education, healthcare, protection from abuse, and the right to be heard in decisions affecting them."],da:["I Danmark inkluderer børns rettigheder?",["Ingen juridiske rettigheder før de er 18","Beskyttelse mod misbrug, ret til uddannelse og ret til at blive hørt","Forældre har absolut myndighed","Kun statsborgernes børn har rettigheder"],1,"Dansk lov beskytter børns rettigheder inkl. uddannelse, sundhedsvæsen, beskyttelse mod misbrug og ret til at blive hørt."]},
-{id:129,cat:"values",type:"val",en:["The Danish attitude toward paying taxes is best described as?",["Taxes are widely resented","Taxes are broadly accepted as the price of a comprehensive welfare state","Only the wealthy pay taxes","Tax evasion is tolerated"],1,"Denmark has among the world's highest taxes, broadly accepted as funding universal welfare — healthcare, education, unemployment support — from cradle to grave."],da:["Den danske holdning til at betale skat beskrives bedst som?",["Skat er bredt afvist","Skat accepteres bredt som prisen for en velfærdsstat","Kun de velhavende betaler skat","Skatteunddragelse tolereres"],1,"Danmark har verdens højeste skatter, bredt accepteret som finansiering af universel velfærd fra vugge til grav."]},
-{id:130,cat:"values",type:"val",en:["Denmark's legal stance on same-sex relationships?",["Not legally recognised","Civil partnerships only, no marriage","Equal rights: same-sex marriage has been legal since 2012","Varies by municipality"],2,"Denmark was first to legalise same-sex partnerships (1989) and legalised same-sex marriage in 2012. Equal rights regardless of sexual orientation is a core Danish value."],da:["Danmarks juridiske holdning til samkønnede forhold?",["Ikke juridisk anerkendt","Kun registrerede partnerskaber, intet ægteskab","Lige rettigheder: samkønnet ægteskab har været lovligt siden 2012","Varierer fra kommune til kommune"],2,"Danmark var det første land til at legalisere registrerede partnerskaber (1989) og legaliserede samkønnet ægteskab i 2012."]},
-{id:131,cat:"gov",type:"cur",en:["Which party is 'Socialdemokratiet'?",["A centre-right party favouring low taxes","The historically dominant centre-left party, founded in 1871","A far-right nationalist party","A green environmental party"],1,"Socialdemokratiet, founded 1871, is Denmark's historically largest party. It combines welfare-state policies with a firm stance on immigration."],da:["Hvilket parti er Socialdemokratiet?",["Et center-højre parti der går ind for lave skatter","Det historisk dominerende center-venstre parti, grundlagt i 1871","Et yderst nationalistisk parti","Et grønt miljøparti"],1,"Socialdemokratiet, grundlagt 1871, er Danmarks historisk største parti. Det kombinerer velfærdspolitik med en fast holdning til indvandring."]},
-{id:132,cat:"gov",type:"cur",en:["What is the 'rød blok' / 'blå blok' division in Danish politics?",["A split between Copenhagen and rural areas","The informal grouping of left-leaning (red) vs right-leaning (blue) parties that typically form coalition governments","A constitutional division of power","The split between monarchy supporters and republicans"],1,"Danish governments are typically formed by either the red bloc (left-leaning) or the blue bloc (right-leaning). Proportional representation means coalition negotiations always follow elections."],da:["Hvad er 'rød blok' / 'blå blok'-delingen i dansk politik?",["En opdeling mellem København og landdistrikterne","Den uformelle gruppering af venstrepartierne (rød) vs. højrepartierne (blå)","En forfatningsmæssig magtdeling","Opdelingen mellem monarkifortalere og republikanere"],1,"Danske regeringer dannes typisk af enten rød blok (venstre) eller blå blok (højre). Forholdstalsvalg betyder, at koalitionsforhandlinger altid følger valg."]},
-];
+// ── SUPABASE ──────────────────────────────────────────────────────────────────
+const {createClient} = window.supabase;
+const sb = createClient(
+  'https://pfumetqjhxsfwprtswtb.supabase.co',
+  'sb_publishable_NDlzBRU5kNdpp-chye_5cw_6LWAaAG_'
+);
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const CAT_EN={history:"History",gov:"Government",geo:"Geography",culture:"Culture",rights:"Rights",values:"Values",current:"Current Affairs"};
 const CAT_DA={history:"Historie",gov:"Regering",geo:"Geografi",culture:"Kultur",rights:"Rettigheder",values:"Værdier",current:"Aktuelle Emner"};
 const COLORS={history:"#C8102E",gov:"#0033A0",geo:"#2E7D32",culture:"#B05C00",rights:"#6A1B9A",values:"#00695C",current:"#AD1457"};
@@ -375,184 +416,457 @@ const CATS_EN=["All","History","Government","Geography","Culture","Rights","Valu
 const CATS_DA=["Alle","Historie","Regering","Geografi","Kultur","Rettigheder","Værdier","Aktuelle Emner"];
 const CAT_KEYS=Object.keys(CAT_EN);
 
-let dark=false,lang="en",selCat="All";
-let mode="practice",quizQs=[],quizIdx=0,quizSel=null,quizScore=0,quizValScore=0,quizAnswers=[];
-let studyQs=[],studyIdx=0,cardFlipped=false;
-let timerInt=null,timerSecs=0;
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let Q=[], progressCache={}, currentUser=null, appInitialized=false;
+let dark=false, lang="en", selCat="All";
+let mode="practice", quizQs=[], quizIdx=0, quizSel=null, quizScore=0, quizValScore=0, quizAnswers=[];
+let studyQs=[], studyIdx=0, cardFlipped=false;
+let timerInt=null, timerSecs=0;
 
+// ── SM-2 ──────────────────────────────────────────────────────────────────────
+const DEF_EF=2.5, MIN_EF=1.3;
+function sm2(card, grade){
+  let{n=0,ef=DEF_EF,interval=0}=card;
+  ef=Math.max(MIN_EF,ef+(0.1-(5-grade)*(0.08+(5-grade)*0.02)));
+  if(grade<3){n=0;interval=1;}
+  else{if(n===0)interval=1;else if(n===1)interval=6;else interval=Math.round(interval*ef);n++;}
+  return{n,ef,interval,due:Date.now()+interval*86400000};
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────────────────────
+async function loadProgress(){
+  if(!currentUser){progressCache={};return;}
+  const{data,error}=await sb.from('progress').select('*').eq('user_id',currentUser.id);
+  if(error||!data)return;
+  progressCache={};
+  data.forEach(r=>{
+    progressCache[r.question_id]={
+      n:r.n,ef:r.ef,interval:r.interval,
+      due:new Date(r.due).getTime(),
+      wrong:r.wrong,seen:r.seen,
+      last:r.last_seen?new Date(r.last_seen).getTime():0,
+    };
+  });
+}
+
+function getProgress(){return progressCache;}
+
+// Sync to cache immediately, upsert to Supabase in background
+function markAnswer(id,ok){
+  const sid=String(id);
+  const ex=progressCache[sid]||{n:0,ef:DEF_EF,interval:0,due:0,wrong:0,seen:0};
+  const grade=ok?5:1;
+  const{n,ef,interval,due}=sm2(ex,grade);
+  progressCache[sid]={...ex,n,ef,interval,due,wrong:ex.wrong+(ok?0:1),seen:ex.seen+1,last:Date.now()};
+  if(currentUser){
+    sb.from('progress').upsert({
+      user_id:currentUser.id,question_id:sid,
+      n,ef,interval,due:new Date(due).toISOString(),
+      wrong:progressCache[sid].wrong,seen:progressCache[sid].seen,
+      last_seen:new Date().toISOString(),
+    },{onConflict:'user_id,question_id'}).then(({error})=>{
+      if(error)console.warn('Progress sync:',error.message);
+    });
+  }
+}
+
+function getWrongIds(){
+  const now=Date.now();
+  return Object.entries(progressCache)
+    .filter(([,c])=>c.wrong>0)
+    .map(([id,c])=>{
+      const overdue=(now-(c.due||0))/86400000;
+      const err=c.seen>0?c.wrong/c.seen:0;
+      return{id:parseInt(id),priority:overdue*err+err};
+    })
+    .sort((a,b)=>b.priority-a.priority)
+    .map(({id})=>id);
+}
+
+function getMastery(){
+  const p=progressCache,r={};
+  CAT_KEYS.forEach(cat=>{
+    const qs=Q.filter(q=>q.cat===cat);
+    const seen=qs.filter(q=>p[String(q.id)]);
+    const good=qs.filter(q=>p[String(q.id)]&&p[String(q.id)].seen>0&&p[String(q.id)].wrong<p[String(q.id)].seen);
+    r[cat]={total:qs.length,seen:seen.length,pct:seen.length?Math.round((good.length/seen.length)*100):0};
+  });
+  return r;
+}
+
+// ── QUESTION LOADING ──────────────────────────────────────────────────────────
+async function loadQuestions(){
+  const{data,error}=await sb.from('questions').select('*').order('id',{ascending:true});
+  if(error||!data)throw new Error('Could not load questions: '+(error?.message||'unknown'));
+  Q=data.map(r=>({
+    id:parseInt(r.id),
+    cat:r.category,
+    type:r.type,
+    en:[r.en_question,r.en_options,r.en_correct,r.en_explanation],
+    da:[r.da_question,r.da_options,r.da_correct,r.da_explanation],
+  }));
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function sendMagicLink(){
+  const email=$('auth-email').value.trim();
+  if(!email){setAuthMsg('Enter your email address.','err');return;}
+  $('auth-btn').disabled=true;$('auth-btn').textContent='Sending…';
+  const{error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
+  if(error){
+    setAuthMsg(error.message,'err');
+    $('auth-btn').disabled=false;$('auth-btn').textContent='Send Magic Link';
+  }else{
+    setAuthMsg('✓ Magic link sent — check your email and click the link.','ok');
+    $('auth-desc').textContent='Check your inbox for the sign-in link.';
+    $('auth-btn').textContent='Resend';$('auth-btn').disabled=false;
+  }
+}
+
+function setAuthMsg(msg,cls=''){const el=$('auth-msg');el.textContent=msg;el.className='auth-msg '+cls;}
+function showAuthOverlay(){$('auth-overlay').style.display='flex';$('load-overlay').style.display='none';}
+function hideAuthOverlay(){$('auth-overlay').style.display='none';}
+
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser=null;appInitialized=false;Q=[];progressCache={};
+  showAuthOverlay();
+}
+
+async function initApp(){
+  $('load-overlay').style.display='flex';
+  $('load-msg').textContent='Loading questions…';
+  try{
+    await loadQuestions();
+    $('load-msg').textContent='Syncing progress…';
+    await loadProgress();
+    $('load-overlay').style.display='none';
+    hideAuthOverlay();
+    applyPrefs();
+    renderHome();
+    renderWelcome();
+    if(isDesktop()){
+      document.querySelectorAll('#right-panel .screen').forEach(s=>s.classList.remove('active'));
+      $('screen-welcome').classList.add('active');
+    }else{
+      show('screen-home');
+    }
+  }catch(e){
+    $('load-overlay').style.display='none';
+    setAuthMsg('Failed to load: '+e.message,'err');
+    showAuthOverlay();
+  }
+}
+
+// ── STORAGE HELPERS (localStorage, non-synced) ────────────────────────────────
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch(e){return d;}};
-const getProgress=()=>ld("dk_progress",{});
-const saveProgress=p=>sv("dk_progress",p);
-const markAnswer=(id,ok)=>{const p=getProgress();if(!p[id])p[id]={wrong:0,seen:0};p[id].seen++;if(!ok)p[id].wrong++;p[id].last=Date.now();saveProgress(p);};
-const getWrongIds=()=>{const p=getProgress();return Object.keys(p).filter(id=>p[id].wrong>0).map(Number);};
-const getHistory=()=>ld("dk_history",[]);
-const addHistory=e=>{const h=getHistory();h.unshift(e);sv("dk_history",h.slice(0,50));};
-const checkStreak=()=>{const today=new Date().toDateString(),last=ld("dk_lastStudy",""),streak=ld("dk_streak",0),yesterday=new Date(Date.now()-86400000).toDateString();const ns=last===today?streak:last===yesterday?streak+1:1;if(last!==today){sv("dk_streak",ns);sv("dk_lastStudy",today);}return ns;};
-const getMastery=()=>{const p=getProgress(),r={};CAT_KEYS.forEach(cat=>{const qs=Q.filter(q=>q.cat===cat),seen=qs.filter(q=>p[q.id]),good=qs.filter(q=>p[q.id]&&p[q.id].seen>0&&p[q.id].wrong<p[q.id].seen);r[cat]={total:qs.length,seen:seen.length,pct:seen.length?Math.round((good.length/seen.length)*100):0};});return r;};
+const getHistory=()=>ld('dk_history',[]);
+const addHistory=e=>{const h=getHistory();h.unshift(e);sv('dk_history',h.slice(0,50));};
+const checkStreak=()=>{
+  const today=new Date().toDateString(),last=ld('dk_lastStudy',''),streak=ld('dk_streak',0);
+  const yesterday=new Date(Date.now()-86400000).toDateString();
+  const ns=last===today?streak:last===yesterday?streak+1:1;
+  if(last!==today){sv('dk_streak',ns);sv('dk_lastStudy',today);}
+  return ns;
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;};
 const $=id=>document.getElementById(id);
-const show=id=>{document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");window.scrollTo(0,0);};
-const cmap=()=>lang==="da"?CAT_DA:CAT_EN;
-const filtered=()=>selCat==="All"||selCat==="Alle"?Q:Q.filter(q=>cmap()[q.cat]===selCat);
+const isDesktop=()=>window.innerWidth>=768;
+const cmap=()=>lang==='da'?CAT_DA:CAT_EN;
+const filtered=()=>selCat==='All'||selCat==='Alle'?Q:Q.filter(q=>cmap()[q.cat]===selCat);
 
-function toggleDark(){dark=!dark;document.body.classList.toggle("dark",dark);["dark-btn","dark-btn2"].forEach(id=>$(id)&&($(id).textContent=dark?"☀️":"🌙"));sv("dk_dark",dark);}
-function toggleLang(){lang=lang==="en"?"da":"en";selCat=lang==="en"?"All":"Alle";const f=lang==="en"?"🇩🇰 DA":"🇬🇧 EN";["lang-btn","lang-btn2"].forEach(id=>$(id)&&($(id).textContent=f));sv("dk_lang",lang);renderHome();if(document.querySelector("#screen-study.active"))renderCard();}
-
-function renderHome(){
-  const da=lang==="da";
-  $("h-sub").textContent=da?"Indfødsretsprøven Forberedelse":"Citizenship Test Prep";
-  $("h-desc").textContent=da?"Mester den viden, der kræves til Indfødsretsprøven.":"Master the knowledge needed for the Indfødsretsprøven.";
-  $("h-filter-lbl").textContent=da?"FILTRER EFTER EMNE":"FILTER BY TOPIC";
-  $("h-mode-lbl").textContent=da?"VÆLG DIN TILSTAND":"CHOOSE YOUR MODE";
-  $("m-practice").textContent=da?"Øvequiz":"Practice Quiz";$("m-practice-d").textContent=da?"10 tilfældige spørgsmål":"10 random questions";
-  $("m-mock").textContent=da?"Fuld Prøveeksamen":"Full Mock Test";$("m-mock-d").textContent=da?"45 spørgsmål · rigtig format":"45 questions · real format";
-  $("m-exam").textContent=da?"Eksamenssimulator":"Exam Simulator";$("m-exam-d").textContent=da?"45 min · ingen hints · rigtige betingelser":"45 min · no hints · real conditions";
-  $("m-weak").textContent=da?"Svage Punkter":"Weak Spots";$("m-weak-d").textContent=da?"Spørgsmål du svarede forkert":"Questions you've answered wrong";
-  $("m-flash").textContent=da?"Flashkort":"Flashcards";$("m-flash-d").textContent=da?"Gennemgå alle emner":"Study all topics";
-  $("m-hist").textContent=da?"Historik":"History";$("m-hist-d").textContent=da?"Tidligere resultater":"Past results & scores";
-  $("h-info-lbl").textContent=da?"OPLYSNINGER OM PRØVEN":"REAL TEST INFO";
-  $("s1").textContent=da?"Spørgsmål i bank":"Questions in bank";$("s2").textContent=da?"Beståelsesgrænse (36/45)":"Pass mark (36/45)";$("s3").textContent=da?"Værdispørgsmål":"Values questions";
-  $("bank-count").textContent=Q.length;
-  const streak=checkStreak();
-  $("streak-bar").style.display=streak>0?"flex":"none";
-  if(streak>0)$("streak-txt").textContent=da?`${streak} dag${streak>1?"e":""} i træk 🔥`:`${streak} day streak 🔥`;
-  const p=getProgress(),hasSeen=Object.keys(p).length>0;
-  $("h-mastery-lbl").style.display=hasSeen?"block":"none";
-  $("mastery-grid").style.display=hasSeen?"grid":"none";
-  if(hasSeen){const m=getMastery();$("mastery-grid").innerHTML=CAT_KEYS.map(cat=>{const c=m[cat],col=COLORS[cat],label=(lang==="da"?CAT_DA:CAT_EN)[cat];return`<div class="mc"><div class="mc-name"><span class="mc-dot" style="background:${col}"></span>${label}</div><div class="mc-bg"><div class="mc-fill" style="width:${c.pct}%;background:${col}"></div></div><div class="mc-pct">${c.pct}% · ${c.seen}/${c.total} ${da?"set":"seen"}</div></div>`;}).join("");}
-  $("weak-btn").style.display=getWrongIds().length>0?"flex":"none";
-  const items=da?["45 multiple choice-spørgsmål","45 minutter · ingen hjælpemidler","Skal score 36/45 (80%) for at bestå","Skal svare rigtigt på 4/5 værdispørgsmål","Afholdes juni og november","Gebyr: 905 kr. (2026)"]:["45 multiple-choice questions","45 minutes · no aids allowed","Must score 36/45 (80%) to pass","Must get 4/5 values questions correct","Held in June and November","Fee: 905 DKK (2026)"];
-  $("info-card").innerHTML=items.map((t,i)=>`<div class="info-row"${i===items.length-1?' style="border:none"':''}><span class="info-check">✓</span><span style="font-size:13px;color:var(--text)">${t}</span></div>`).join("");
-  const cats=da?CATS_DA:CATS_EN;
-  $("chips").innerHTML=cats.map(cat=>{const ck=Object.keys(cmap()).find(k=>cmap()[k]===cat),col=ck?COLORS[ck]:"#C8102E",ac=cat===selCat;return`<button class="chip${ac?" active":""}" style="${ac?`background:${col};border-color:${col}`:""}" onclick="selectCat('${cat.replace(/'/g,"\\'")}')"><span class="chip-dot" style="background:${ac?"rgba(255,255,255,.7)":col}"></span>${cat}</button>`;}).join("");
-  $("q-count-txt").textContent=`${filtered().length} ${da?"spørgsmål tilgængelige":"questions available"}`;
+function show(id){
+  if(isDesktop()){
+    document.querySelectorAll('#right-panel .screen').forEach(s=>s.classList.remove('active'));
+    if(id==='screen-home'||id==='screen-welcome')$('screen-welcome').classList.add('active');
+    else $(id).classList.add('active');
+  }else{
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    $(id).classList.add('active');
+    window.scrollTo(0,0);
+  }
 }
-function selectCat(cat){selCat=cat;renderHome();}
-function goHome(){stopTimer();show("screen-home");renderHome();}
 
+function applyPrefs(){
+  document.body.classList.toggle('dark',dark);
+  const moon=dark?'☀️':'🌙',flag=lang==='en'?'🇩🇰 DA':'🇬🇧 EN';
+  ['dark-btn','dark-btn2','dark-btn3'].forEach(id=>$(id)&&($(id).textContent=moon));
+  ['lang-btn','lang-btn2','lang-btn3'].forEach(id=>$(id)&&($(id).textContent=flag));
+}
+
+function toggleDark(){dark=!dark;sv('dk_dark',dark);applyPrefs();}
+function toggleLang(){lang=lang==='en'?'da':'en';selCat=lang==='en'?'All':'Alle';sv('dk_lang',lang);applyPrefs();renderHome();renderWelcome();if(document.querySelector('#screen-study.active'))renderCard();}
+
+// ── HOME RENDER ───────────────────────────────────────────────────────────────
+function renderHome(){
+  const da=lang==='da';
+  $('h-sub').textContent=da?'Indfødsretsprøven Forberedelse':'Citizenship Test Prep';
+  $('h-desc').textContent=da?'Mester den viden, der kræves til Indfødsretsprøven.':'Master the knowledge needed for the Indfødsretsprøven.';
+  $('h-filter-lbl').textContent=da?'FILTRER EFTER EMNE':'FILTER BY TOPIC';
+  $('h-mode-lbl').textContent=da?'VÆLG DIN TILSTAND':'CHOOSE YOUR MODE';
+  $('m-practice').textContent=da?'Øvequiz':'Practice Quiz';$('m-practice-d').textContent=da?'10 tilfældige spørgsmål':'10 random questions';
+  $('m-mock').textContent=da?'Fuld Prøveeksamen':'Full Mock Test';$('m-mock-d').textContent=da?'45 spørgsmål · rigtig format':'45 questions · real format';
+  $('m-exam').textContent=da?'Eksamenssimulator':'Exam Simulator';$('m-exam-d').textContent=da?'45 min · ingen hints · rigtige betingelser':'45 min · no hints · real conditions';
+  $('m-weak').textContent=da?'Svage Punkter':'Weak Spots';$('m-weak-d').textContent=da?'SM-2 prioriteret gennemgang':'SM-2 priority review';
+  $('m-flash').textContent=da?'Flashkort':'Flashcards';$('m-flash-d').textContent=da?'Gennemgå alle emner':'Study all topics';
+  $('m-hist').textContent=da?'Historik':'History';$('m-hist-d').textContent=da?'Tidligere resultater':'Past results & scores';
+  $('h-info-lbl').textContent=da?'OPLYSNINGER OM PRØVEN':'REAL TEST INFO';
+  $('s1').textContent=da?'Spørgsmål i bank':'Questions in bank';
+  $('s2').textContent=da?'Beståelsesgrænse (36/45)':'Pass mark (36/45)';
+  $('s3').textContent=da?'Værdispørgsmål':'Values questions';
+  $('bank-count').textContent=Q.length||'—';
+
+  const streak=checkStreak();
+  $('streak-bar').style.display=streak>0?'flex':'none';
+  if(streak>0)$('streak-txt').textContent=da?`${streak} dag${streak>1?'e':''} i træk 🔥`:`${streak} day streak 🔥`;
+
+  const p=progressCache, hasSeen=Object.keys(p).length>0;
+  $('h-mastery-lbl').style.display=hasSeen?'block':'none';
+  $('mastery-grid').style.display=hasSeen?'grid':'none';
+  if(hasSeen){
+    const m=getMastery();
+    $('mastery-grid').innerHTML=CAT_KEYS.map(cat=>{
+      const c=m[cat],col=COLORS[cat],label=(da?CAT_DA:CAT_EN)[cat];
+      return`<div class="mc"><div class="mc-name"><span class="mc-dot" style="background:${col}"></span>${label}</div><div class="mc-bg"><div class="mc-fill" style="width:${c.pct}%;background:${col}"></div></div><div class="mc-pct">${c.pct}% · ${c.seen}/${c.total} ${da?'set':'seen'}</div></div>`;
+    }).join('');
+  }
+
+  $('weak-btn').style.display=getWrongIds().length>0?'flex':'none';
+
+  const items=da?['45 multiple choice-spørgsmål','45 minutter · ingen hjælpemidler','Skal score 36/45 (80%) for at bestå','Skal svare rigtigt på 4/5 værdispørgsmål','Afholdes juni og november','Gebyr: 905 kr. (2026)']:['45 multiple-choice questions','45 minutes · no aids allowed','Must score 36/45 (80%) to pass','Must get 4/5 values questions correct','Held in June and November','Fee: 905 DKK (2026)'];
+  $('info-card').innerHTML=items.map((t,i)=>`<div class="info-row"${i===items.length-1?' style="border:none"':''}><span class="info-check">✓</span><span style="font-size:13px;color:var(--text)">${t}</span></div>`).join('');
+
+  const cats=da?CATS_DA:CATS_EN;
+  $('chips').innerHTML=cats.map(cat=>{
+    const ck=Object.keys(cmap()).find(k=>cmap()[k]===cat),col=ck?COLORS[ck]:'#C8102E',ac=cat===selCat;
+    return`<button class="chip${ac?' active':''}" style="${ac?`background:${col};border-color:${col}`:''}" onclick="selectCat('${cat.replace(/'/g,"\\'")}')"><span class="chip-dot" style="background:${ac?'rgba(255,255,255,.7)':col}"></span>${cat}</button>`;
+  }).join('');
+  $('q-count-txt').textContent=`${filtered().length} ${da?'spørgsmål tilgængelige':'questions available'}`;
+
+  renderWelcome();
+}
+
+// ── WELCOME RENDER (desktop right-panel default) ──────────────────────────────
+function renderWelcome(){
+  if(!$('screen-welcome'))return;
+  const da=lang==='da';
+  $('w-desc').textContent=da?'Vælg en tilstand i venstre panel for at starte.':'Select a mode from the left panel to begin.';
+  $('w-due-lbl').textContent=da?'DAGENS GENNEMGANG':'TODAY\'S REVIEW';
+  $('w-info-lbl').textContent=da?'OM PRØVEN':'ABOUT THE TEST';
+
+  // Due cards
+  const now=Date.now();
+  const due=Object.entries(progressCache).filter(([,c])=>c.wrong>0&&c.due<=now);
+  const $dc=$('w-due-card');
+  if(!Object.keys(progressCache).length){
+    $dc.innerHTML=`<div class="info-row" style="border:none"><span class="info-check">→</span><span style="font-size:13px;color:var(--sub)">${da?'Start med at studere for at spore dine fremskridt.':'Start studying to track your progress.'}</span></div>`;
+  }else if(due.length){
+    $dc.innerHTML=`<div class="info-row"><span class="info-check">📚</span><span style="font-size:13px;color:var(--text)">${due.length} ${da?`kort forfalder til gennemgang`:'card'+(due.length===1?'':'s')+' due for review'}</span></div><div class="info-row" style="border:none"><span class="info-check" style="color:var(--sub)">→</span><span style="font-size:13px;color:var(--sub)">${da?'Start Svage Punkter for at gennemgå dem.':'Start a Weak Spots session to review them.'}</span></div>`;
+  }else{
+    $dc.innerHTML=`<div class="info-row" style="border:none"><span class="info-check" style="color:var(--green)">✓</span><span style="font-size:13px;color:var(--text)">${da?'Alt ajour! Ingen kort forfalder nu.':'All caught up! No cards due right now.'}</span></div>`;
+  }
+
+  // Mastery grid
+  const hasSeen=Object.keys(progressCache).length>0;
+  $('w-mastery-lbl').style.display=hasSeen?'block':'none';
+  $('w-mastery-grid').style.display=hasSeen?'grid':'none';
+  if(hasSeen){
+    const m=getMastery();
+    $('w-mastery-grid').innerHTML=CAT_KEYS.map(cat=>{
+      const c=m[cat],col=COLORS[cat],label=(da?CAT_DA:CAT_EN)[cat];
+      return`<div class="mc"><div class="mc-name"><span class="mc-dot" style="background:${col}"></span>${label}</div><div class="mc-bg"><div class="mc-fill" style="width:${c.pct}%;background:${col}"></div></div><div class="mc-pct">${c.pct}% · ${c.seen}/${c.total} ${da?'set':'seen'}</div></div>`;
+    }).join('');
+  }
+
+  // Info
+  const items=da?['45 multiple choice-spørgsmål','45 minutter · ingen hjælpemidler','Skal score 36/45 (80%) for at bestå','Skal svare rigtigt på 4/5 værdispørgsmål','Afholdes juni og november','Gebyr: 905 kr. (2026)']:['45 multiple-choice questions','45 minutes · no aids allowed','Must score 36/45 (80%) to pass','Must get 4/5 values questions correct','Held in June and November','Fee: 905 DKK (2026)'];
+  $('w-info-card').innerHTML=items.map((t,i)=>`<div class="info-row"${i===items.length-1?' style="border:none"':''}><span class="info-check">✓</span><span style="font-size:13px;color:var(--text)">${t}</span></div>`).join('');
+
+  // Sync lang buttons
+  const f=lang==='en'?'🇩🇰 DA':'🇬🇧 EN';
+  $('lang-btn3')&&($('lang-btn3').textContent=f);
+  $('dark-btn3')&&($('dark-btn3').textContent=dark?'☀️':'🌙');
+}
+
+function selectCat(cat){selCat=cat;renderHome();}
+function goHome(){stopTimer();show('screen-home');renderHome();}
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────────
 function startQuiz(m){
+  if(!Q.length)return;
   mode=m;stopTimer();
-  const da=lang==="da";
-  if(m==="mock"||m==="exam"){
-    const c=shuffle(Q.filter(q=>q.type==="cur")).slice(0,35);
-    const v=shuffle(Q.filter(q=>q.type==="val")).slice(0,5);
-    const n=shuffle(Q.filter(q=>q.type==="news")).slice(0,5);
+  const da=lang==='da';
+  if(m==='mock'||m==='exam'){
+    const c=shuffle(Q.filter(q=>q.type==='cur')).slice(0,35);
+    const v=shuffle(Q.filter(q=>q.type==='val')).slice(0,5);
+    const n=shuffle(Q.filter(q=>q.type==='news')).slice(0,5);
     quizQs=shuffle([...c,...v,...n]);
-  } else if(m==="weak"){
+  }else if(m==='weak'){
     const ids=getWrongIds();
     quizQs=shuffle(Q.filter(q=>ids.includes(q.id))).slice(0,20);
-  } else {
+  }else{
     quizQs=shuffle(filtered()).slice(0,Math.min(10,filtered().length));
   }
   quizIdx=0;quizSel=null;quizScore=0;quizValScore=0;quizAnswers=[];
-  show("screen-quiz");
-  if(m==="exam"){$("timer-bar").style.display="flex";timerSecs=45*60;updateTimerDisplay();timerInt=setInterval(()=>{timerSecs--;updateTimerDisplay();if(timerSecs<=0){stopTimer();nextQuestion();}},1000);}
-  else $("timer-bar").style.display="none";
+  show('screen-quiz');
+  if(m==='exam'){
+    $('timer-bar').style.display='flex';timerSecs=45*60;updateTimerDisplay();
+    timerInt=setInterval(()=>{timerSecs--;updateTimerDisplay();if(timerSecs<=0){stopTimer();nextQuestion();}},1000);
+  }else $('timer-bar').style.display='none';
   renderQuestion();
 }
+
 function stopTimer(){if(timerInt){clearInterval(timerInt);timerInt=null;}}
-function updateTimerDisplay(){const m=Math.floor(timerSecs/60),s=timerSecs%60,txt=`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;$("timer-txt").textContent=txt;$("timer-txt").classList.toggle("urgent",timerSecs<300);}
+function updateTimerDisplay(){
+  const m=Math.floor(timerSecs/60),s=timerSecs%60;
+  $('timer-txt').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  $('timer-txt').classList.toggle('urgent',timerSecs<300);
+}
 
 function renderQuestion(){
-  const q=quizQs[quizIdx],da=lang==="da",d=q[lang];
-  const tmap=da?{cur:"Pensum",val:"⚖️ Værdier",news:"📰 Aktuelle"}:{cur:"Curriculum",val:"⚖️ Values",news:"📰 Current"};
-  const modeLabels={exam:da?"⏱️ Eksamen":"⏱️ Exam",weak:da?"🎯 Svage":"🎯 Weak",practice:"",mock:""};
-  $("q-home-lbl").textContent=da?"Hjem":"Home";
-  $("q-cat-pill").textContent=(lang==="da"?CAT_DA:CAT_EN)[q.cat];$("q-cat-pill").style.background=COLORS[q.cat];
-  $("q-type-pill").textContent=tmap[q.type];
-  const mp=$("q-mode-pill");if(modeLabels[mode]){mp.style.display="inline-block";mp.textContent=modeLabels[mode];}else mp.style.display="none";
-  $("q-counter").textContent=`${quizIdx+1}/${quizQs.length}`;
-  $("q-prog").style.width=`${((quizIdx+1)/quizQs.length)*100}%`;$("q-prog").style.background=COLORS[q.cat];
-  $("q-num").textContent=`${da?"SPØRGSMÅL":"QUESTION"} ${quizIdx+1}`;
-  $("q-text").textContent=d[0];
-  $("q-explanation").style.display="none";$("exam-note").style.display="none";quizSel=null;
-  $("q-options").innerHTML=d[1].map((opt,i)=>`<button class="opt-btn" id="opt-${i}" onclick="doAnswer(${i})"><div class="opt-letter">${["A","B","C","D"][i]}</div><span class="opt-text">${opt}</span><span id="ind-${i}"></span></button>`).join("");
+  const q=quizQs[quizIdx],da=lang==='da',d=q[lang];
+  const tmap=da?{cur:'Pensum',val:'⚖️ Værdier',news:'📰 Aktuelle'}:{cur:'Curriculum',val:'⚖️ Values',news:'📰 Current'};
+  const modeLabels={exam:da?'⏱️ Eksamen':'⏱️ Exam',weak:da?'🎯 Svage':'🎯 Weak',practice:'',mock:''};
+  $('q-home-lbl').textContent=da?'Hjem':'Home';
+  $('q-cat-pill').textContent=(da?CAT_DA:CAT_EN)[q.cat];$('q-cat-pill').style.background=COLORS[q.cat];
+  $('q-type-pill').textContent=tmap[q.type];
+  const mp=$('q-mode-pill');if(modeLabels[mode]){mp.style.display='inline-block';mp.textContent=modeLabels[mode];}else mp.style.display='none';
+  $('q-counter').textContent=`${quizIdx+1}/${quizQs.length}`;
+  $('q-prog').style.width=`${((quizIdx+1)/quizQs.length)*100}%`;$('q-prog').style.background=COLORS[q.cat];
+  $('q-num').textContent=`${da?'SPØRGSMÅL':'QUESTION'} ${quizIdx+1}`;
+  $('q-text').textContent=d[0];
+  $('q-explanation').style.display='none';$('exam-note').style.display='none';quizSel=null;
+  $('q-options').innerHTML=d[1].map((opt,i)=>`<button class="opt-btn" id="opt-${i}" onclick="doAnswer(${i})"><div class="opt-letter">${['A','B','C','D'][i]}</div><span class="opt-text">${opt}</span><span id="ind-${i}"></span></button>`).join('');
 }
+
 function doAnswer(i){
   if(quizSel!==null)return;quizSel=i;
   const q=quizQs[quizIdx],correct=q[lang][2],ok=i===correct;
-  if(ok){quizScore++;if(q.type==="val")quizValScore++;}
-  markAnswer(q.id,ok);quizAnswers.push({q,chosen:i,ok});
-  for(let j=0;j<4;j++){const b=$(`opt-${j}`);if(!b)continue;b.disabled=true;if(j===correct){b.classList.add("correct");$(`ind-${j}`).textContent="✓";}else if(j===i){b.classList.add("wrong");$(`ind-${j}`).textContent="✗";}else b.classList.add("dim");}
-  const da=lang==="da";
-  if(mode==="exam"){$("exam-note").style.display="block";$("exam-note").textContent=da?"Eksamenssimulator: ingen hints. Klik for at fortsætte.":"Exam mode: no hints shown. Click to continue.";$("next-btn").textContent=quizIdx+1>=quizQs.length?(da?"Se resultater →":"See Results →"):(da?"Næste →":"Next →");const nb=document.createElement("button");nb.className="next-btn";nb.style.marginTop="10px";nb.textContent=$("next-btn").textContent;nb.onclick=nextQuestion;$("exam-note").appendChild(nb);}
-  else{$("exp-lbl").textContent=`💡 ${da?"Vidste du det?":"Did you know?"}`;$("q-exp-text").textContent=q[lang][3];$("next-btn").textContent=quizIdx+1>=quizQs.length?(da?"Se resultater →":"See Results →"):(da?"Næste spørgsmål →":"Next Question →");$("q-explanation").style.display="block";}
+  if(ok){quizScore++;if(q.type==='val')quizValScore++;}
+  markAnswer(q.id,ok);
+  quizAnswers.push({q,chosen:i,ok});
+  for(let j=0;j<4;j++){const b=$(`opt-${j}`);if(!b)continue;b.disabled=true;if(j===correct){b.classList.add('correct');$(`ind-${j}`).textContent='✓';}else if(j===i){b.classList.add('wrong');$(`ind-${j}`).textContent='✗';}else b.classList.add('dim');}
+  const da=lang==='da';
+  if(mode==='exam'){
+    $('exam-note').style.display='block';
+    $('exam-note').textContent=da?'Eksamenssimulator: ingen hints. Klik for at fortsætte.':'Exam mode: no hints shown. Click to continue.';
+    $('next-btn').textContent=quizIdx+1>=quizQs.length?(da?'Se resultater →':'See Results →'):(da?'Næste →':'Next →');
+    const nb=document.createElement('button');nb.className='next-btn';nb.style.marginTop='10px';nb.textContent=$('next-btn').textContent;nb.onclick=nextQuestion;$('exam-note').appendChild(nb);
+  }else{
+    $('exp-lbl').textContent=`💡 ${da?'Vidste du det?':'Did you know?'}`;
+    $('q-exp-text').textContent=q[lang][3];
+    $('next-btn').textContent=quizIdx+1>=quizQs.length?(da?'Se resultater →':'See Results →'):(da?'Næste spørgsmål →':'Next Question →');
+    $('q-explanation').style.display='block';
+  }
 }
-function nextQuestion(){$("exam-note").innerHTML="";if(quizIdx+1>=quizQs.length)renderResults();else{quizIdx++;renderQuestion();}}
+
+function nextQuestion(){$('exam-note').innerHTML='';if(quizIdx+1>=quizQs.length)renderResults();else{quizIdx++;renderQuestion();}}
 function retryQuiz(){startQuiz(mode);}
 
+// ── RESULTS ───────────────────────────────────────────────────────────────────
 function renderResults(){
-  stopTimer();show("screen-results");
-  const da=lang==="da",total=quizQs.length,pct=Math.round((quizScore/total)*100);
-  const passed=(mode==="mock"||mode==="exam")?(quizScore>=Math.ceil(total*.8)&&quizValScore>=4):(quizScore>=Math.ceil(total*.7));
-  addHistory({mode,score:quizScore,total,pct,val:quizValScore,passed,date:new Date().toLocaleDateString(lang==="da"?"da-DK":"en-GB"),ts:Date.now()});
-  $("res-hdr").style.background=passed?"#C8102E":"#1a2a4a";
-  $("res-emoji").textContent=passed?"🎉":"📚";
-  $("res-title").textContent=passed?(da?"Bestået! 🎉":"Passed! 🎉"):(da?"Fortsæt øv! 📚":"Keep Practicing!");
-  $("res-sub").textContent=passed?(da?"Du bestod!":"You passed!"):(da?"Bliv ved med at øve!":"Keep going!");
-  $("res-score").textContent=`${quizScore}/${total}`;$("res-pct").textContent=`${pct}%`;
-  if(mode==="mock"||mode==="exam"){$("res-val").style.display="block";$("res-val").textContent=`${da?"Værdier:":"Values:"} ${quizValScore}/5`;$("res-note").style.display="block";$("res-note").textContent=da?`Score ${quizScore}/${total} · Værdier ${quizValScore}/5 (kræver 4/5)`:`Score ${quizScore}/${total} · Values ${quizValScore}/5 (need 4/5)`;}
-  else{$("res-val").style.display="none";$("res-note").style.display="none";}
-  $("res-review-lbl").textContent=da?"GENNEMGANG AF SPØRGSMÅL":"QUESTION REVIEW";
-  $("res-retry").textContent=da?"Prøv igen":"Try Again";$("res-home-btn").textContent=da?"← Tilbage til forsiden":"← Back to Home";
-  $("review-list").innerHTML=quizAnswers.map(({q,chosen,ok})=>`<div class="review-item" style="border-left-color:${ok?"#2E7D32":"#C8102E"}"><div class="review-q">${q[lang][0]}</div><div class="review-tags">${!ok?`<span class="rtag w">${da?"Du: ":"You: "}${q[lang][1][chosen]}</span>`:""}<span class="rtag r">✓ ${q[lang][1][q[lang][2]]}</span></div></div>`).join("");
+  stopTimer();show('screen-results');
+  const da=lang==='da',total=quizQs.length,pct=Math.round((quizScore/total)*100);
+  const passed=(mode==='mock'||mode==='exam')?(quizScore>=Math.ceil(total*.8)&&quizValScore>=4):(quizScore>=Math.ceil(total*.7));
+  addHistory({mode,score:quizScore,total,pct,val:quizValScore,passed,date:new Date().toLocaleDateString(da?'da-DK':'en-GB'),ts:Date.now()});
+  $('res-hdr').style.background=passed?'#C8102E':'#1a2a4a';
+  $('res-emoji').textContent=passed?'🎉':'📚';
+  $('res-title').textContent=passed?(da?'Bestået! 🎉':'Passed! 🎉'):(da?'Fortsæt øv! 📚':'Keep Practicing!');
+  $('res-sub').textContent=passed?(da?'Du bestod!':'You passed!'):(da?'Bliv ved med at øve!':'Keep going!');
+  $('res-score').textContent=`${quizScore}/${total}`;$('res-pct').textContent=`${pct}%`;
+  if(mode==='mock'||mode==='exam'){$('res-val').style.display='block';$('res-val').textContent=`${da?'Værdier:':'Values:'} ${quizValScore}/5`;$('res-note').style.display='block';$('res-note').textContent=da?`Score ${quizScore}/${total} · Værdier ${quizValScore}/5 (kræver 4/5)`:`Score ${quizScore}/${total} · Values ${quizValScore}/5 (need 4/5)`;}
+  else{$('res-val').style.display='none';$('res-note').style.display='none';}
+  $('res-review-lbl').textContent=da?'GENNEMGANG AF SPØRGSMÅL':'QUESTION REVIEW';
+  $('res-retry').textContent=da?'Prøv igen':'Try Again';$('res-home-btn').textContent=da?'← Tilbage til forsiden':'← Back to Home';
+  $('review-list').innerHTML=quizAnswers.map(({q,chosen,ok})=>`<div class="review-item" style="border-left-color:${ok?'#2E7D32':'#C8102E'}"><div class="review-q">${q[lang][0]}</div><div class="review-tags">${!ok?`<span class="rtag w">${da?'Du: ':'You: '}${q[lang][1][chosen]}</span>`:''}<span class="rtag r">✓ ${q[lang][1][q[lang][2]]}</span></div></div>`).join('');
 }
+
 function shareResult(){
-  const da=lang==="da",q=quizQs.length,passed=(mode==="mock"||mode==="exam")?(quizScore>=Math.ceil(q*.8)&&quizValScore>=4):(quizScore>=Math.ceil(q*.7));
-  const txt=da?`Jeg scorede ${quizScore}/${q} (${Math.round(quizScore/q*100)}%) på Indfødsretsprøven-mock! ${passed?"✅ Bestået!":"📚 Fortsætter øv."} 🇩🇰`:`I scored ${quizScore}/${q} (${Math.round(quizScore/q*100)}%) on the Danish citizenship mock test! ${passed?"✅ Passed!":"📚 Keep practicing."} 🇩🇰`;
-  if(navigator.share){navigator.share({title:"DANSK Test Result",text:txt}).catch(()=>{});}
-  else{navigator.clipboard.writeText(txt).then(()=>alert(da?"Kopieret til udklipsholder!":"Copied to clipboard!")).catch(()=>prompt(da?"Kopiér denne tekst:":"Copy this text:",txt));}
+  const da=lang==='da',q=quizQs.length,passed=(mode==='mock'||mode==='exam')?(quizScore>=Math.ceil(q*.8)&&quizValScore>=4):(quizScore>=Math.ceil(q*.7));
+  const txt=da?`Jeg scorede ${quizScore}/${q} (${Math.round(quizScore/q*100)}%) på Indfødsretsprøven-mock! ${passed?'✅ Bestået!':'📚 Fortsætter øv.'} 🇩🇰`:`I scored ${quizScore}/${q} (${Math.round(quizScore/q*100)}%) on the Danish citizenship mock test! ${passed?'✅ Passed!':'📚 Keep practicing.'} 🇩🇰`;
+  if(navigator.share){navigator.share({title:'DANSK Test Result',text:txt}).catch(()=>{});}
+  else{navigator.clipboard.writeText(txt).then(()=>alert(da?'Kopieret til udklipsholder!':'Copied to clipboard!')).catch(()=>prompt(da?'Kopiér denne tekst:':'Copy this text:',txt));}
 }
+
 function printStudySheet(){
-  document.getElementById("screen-print")||document.body.insertAdjacentHTML("beforeend",'<div id="screen-print" style="display:none"><h1 style="font-family:serif;font-size:20px;margin-bottom:4px">🇩🇰 DANSK — Study Sheet</h1><p style="font-size:11px;color:#666;margin-bottom:14px">All questions & answers</p><div id="print-content"></div></div>');
-  $("print-content").innerHTML=Q.map((q,i)=>`<div class="print-q"><div style="font-weight:700;font-size:12px;margin-bottom:3px">${i+1}. ${q[lang][0]}</div><div style="font-size:11px;color:#2E7D32;font-weight:600">✓ ${q[lang][1][q[lang][2]]}</div><div style="font-size:10px;color:#555;margin-top:2px">${q[lang][3]}</div></div>`).join("");
+  document.getElementById('screen-print')||document.body.insertAdjacentHTML('beforeend','<div id="screen-print" style="display:none"><h1 style="font-family:serif;font-size:20px;margin-bottom:4px">🇩🇰 DANSK — Study Sheet</h1><p style="font-size:11px;color:#666;margin-bottom:14px">All questions & answers</p><div id="print-content"></div></div>');
+  $('print-content').innerHTML=Q.map((q,i)=>`<div class="print-q"><div style="font-weight:700;font-size:12px;margin-bottom:3px">${i+1}. ${q[lang][0]}</div><div style="font-size:11px;color:#2E7D32;font-weight:600">✓ ${q[lang][1][q[lang][2]]}</div><div style="font-size:10px;color:#555;margin-top:2px">${q[lang][3]}</div></div>`).join('');
   window.print();
 }
 
-function startStudy(){studyQs=shuffle(filtered());studyIdx=0;cardFlipped=false;show("screen-study");renderCard();}
+// ── FLASHCARDS ────────────────────────────────────────────────────────────────
+function startStudy(){studyQs=shuffle(filtered());studyIdx=0;cardFlipped=false;show('screen-study');renderCard();}
 function renderCard(){
-  const q=studyQs[studyIdx],da=lang==="da",col=COLORS[q.cat];
-  const tmap=da?{cur:"Pensum",val:"⚖️ Værdier",news:"📰 Aktuelle"}:{cur:"Curriculum",val:"⚖️ Values",news:"📰 Current"};
-  $("s-home-lbl").textContent=da?"Hjem":"Home";
-  $("s-counter").textContent=`${studyIdx+1}/${studyQs.length}`;
-  $("s-cat-pill").textContent=(da?CAT_DA:CAT_EN)[q.cat];$("s-cat-pill").style.background=col;
-  $("s-type-pill").textContent=tmap[q.type];
-  $("card-front").style.background=col;
-  $("c-q-lbl").textContent=da?"SPØRGSMÅL":"QUESTION";
-  $("c-question").textContent=q[lang][0];
-  $("c-hint").textContent=da?"Tryk for at afsløre svar":"Tap to reveal answer";
-  $("c-a-lbl").textContent=da?"SVAR":"ANSWER";
-  $("c-answer").textContent=q[lang][1][q[lang][2]];$("c-answer").style.color=col;
-  $("c-exp").textContent=q[lang][3];
-  cardFlipped=false;$("card-inner").classList.remove("flipped");
-  $("prev-btn").disabled=studyIdx===0;$("next-card-btn").disabled=studyIdx===studyQs.length-1;
-  $("prev-lbl").textContent=da?"Forrige":"Prev";$("next-lbl").textContent=da?"Næste":"Next";
-  $("flip-hint").textContent=da?"Tryk på kortet for at vende":"Tap card to flip";
+  const q=studyQs[studyIdx],da=lang==='da',col=COLORS[q.cat];
+  const tmap=da?{cur:'Pensum',val:'⚖️ Værdier',news:'📰 Aktuelle'}:{cur:'Curriculum',val:'⚖️ Values',news:'📰 Current'};
+  $('s-home-lbl').textContent=da?'Hjem':'Home';
+  $('s-counter').textContent=`${studyIdx+1}/${studyQs.length}`;
+  $('s-cat-pill').textContent=(da?CAT_DA:CAT_EN)[q.cat];$('s-cat-pill').style.background=col;
+  $('s-type-pill').textContent=tmap[q.type];
+  $('card-front').style.background=col;
+  $('c-q-lbl').textContent=da?'SPØRGSMÅL':'QUESTION';
+  $('c-question').textContent=q[lang][0];
+  $('c-hint').textContent=da?'Tryk for at afsløre svar':'Tap to reveal answer';
+  $('c-a-lbl').textContent=da?'SVAR':'ANSWER';
+  $('c-answer').textContent=q[lang][1][q[lang][2]];$('c-answer').style.color=col;
+  $('c-exp').textContent=q[lang][3];
+  cardFlipped=false;$('card-inner').classList.remove('flipped');
+  $('prev-btn').disabled=studyIdx===0;$('next-card-btn').disabled=studyIdx===studyQs.length-1;
+  $('prev-lbl').textContent=da?'Forrige':'Prev';$('next-lbl').textContent=da?'Næste':'Next';
+  $('flip-hint').textContent=da?'Tryk på kortet for at vende':'Tap card to flip';
   const n=Math.min(7,studyQs.length);
-  $("dots").innerHTML=Array.from({length:n}).map((_,i)=>{const di=studyQs.length<=7?i:Math.floor(i*(studyQs.length-1)/6),ac=di===studyIdx;return`<div class="dot${ac?" on":""}" style="width:${ac?18:7}px"></div>`;}).join("");
+  $('dots').innerHTML=Array.from({length:n}).map((_,i)=>{const di=studyQs.length<=7?i:Math.floor(i*(studyQs.length-1)/6),ac=di===studyIdx;return`<div class="dot${ac?' on':''}" style="width:${ac?18:7}px"></div>`;}).join('');
 }
-function flipCard(){cardFlipped=!cardFlipped;$("card-inner").classList.toggle("flipped",cardFlipped);}
+function flipCard(){cardFlipped=!cardFlipped;$('card-inner').classList.toggle('flipped',cardFlipped);}
 function prevCard(){if(studyIdx>0){studyIdx--;renderCard();}}
 function nextCard(){if(studyIdx<studyQs.length-1){studyIdx++;renderCard();}}
 
+// ── HISTORY ───────────────────────────────────────────────────────────────────
 function showHistory(){
-  show("screen-history");const da=lang==="da";
-  $("hist-home-lbl").textContent=da?"Hjem":"Home";
-  $("hist-title").textContent=da?"Historik":"History";
-  $("clear-btn").textContent=da?"Ryd":"Clear";
+  show('screen-history');const da=lang==='da';
+  $('hist-home-lbl').textContent=da?'Hjem':'Home';
+  $('hist-title').textContent=da?'Historik':'History';
+  $('clear-btn').textContent=da?'Ryd':'Clear';
   const h=getHistory();
-  const mLabels={practice:da?"Øvequiz":"Practice",mock:da?"Prøveeksamen":"Mock Test",exam:da?"Eksamen":"Exam Simulator",weak:da?"Svage Punkter":"Weak Spots"};
-  if(!h.length){$("hist-list").innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-txt">${da?"Ingen historik endnu":"No history yet"}</div><div class="empty-sub">${da?"Gennemfør en quiz for at se dine resultater her.":"Complete a quiz to see your results here."}</div></div>`;return;}
-  $("hist-list").innerHTML=h.map(e=>{const passed=e.passed;const col=passed?"#2E7D32":"#C8102E";return`<div class="hist-item"><span class="hist-score" style="color:${col}">${e.score}/${e.total}</span><div class="hist-meta"><div class="hist-mode">${mLabels[e.mode]||e.mode}</div><div class="hist-date">${e.date} · ${e.pct}%${e.mode==="mock"||e.mode==="exam"?` · ${da?"Værdier":"Values"}: ${e.val}/5`:""}</div></div><span class="hist-badge" style="background:${passed?"#E8F5E9":"#FFEBEE"};color:${col}">${passed?(da?"Bestået":"Pass"):(da?"Ikke bestået":"Fail")}</span></div>`;}).join("");
+  const mLabels={practice:da?'Øvequiz':'Practice',mock:da?'Prøveeksamen':'Mock Test',exam:da?'Eksamen':'Exam Simulator',weak:da?'Svage Punkter':'Weak Spots'};
+  if(!h.length){$('hist-list').innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-txt">${da?'Ingen historik endnu':'No history yet'}</div><div class="empty-sub">${da?'Gennemfør en quiz for at se dine resultater her.':'Complete a quiz to see your results here.'}</div></div>`;return;}
+  $('hist-list').innerHTML=h.map(e=>{const passed=e.passed,col=passed?'#2E7D32':'#C8102E';return`<div class="hist-item"><span class="hist-score" style="color:${col}">${e.score}/${e.total}</span><div class="hist-meta"><div class="hist-mode">${mLabels[e.mode]||e.mode}</div><div class="hist-date">${e.date} · ${e.pct}%${e.mode==='mock'||e.mode==='exam'?` · ${da?'Værdier':'Values'}: ${e.val}/5`:''}</div></div><span class="hist-badge" style="background:${passed?'#E8F5E9':'#FFEBEE'};color:${col}">${passed?(da?'Bestået':'Pass'):(da?'Ikke bestået':'Fail')}</span></div>`;}).join('');
 }
-function clearHistory(){const da=lang==="da";if(confirm(da?"Slet al historik?":"Clear all history?")){sv("dk_history",[]);showHistory();}}
+function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'Clear all history?')){sv('dk_history',[]);showHistory();}}
 
-(function init(){
-  dark=ld("dk_dark",false);lang=ld("dk_lang","en");selCat=lang==="en"?"All":"Alle";
-  if(dark){document.body.classList.add("dark");["dark-btn","dark-btn2"].forEach(id=>$(id)&&($(id).textContent="☀️"));}
-  const f=lang==="en"?"🇩🇰 DA":"🇬🇧 EN";["lang-btn","lang-btn2"].forEach(id=>$(id)&&($(id).textContent=f));
-  renderHome();
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async function init(){
+  dark=ld('dk_dark',false);lang=ld('dk_lang','en');selCat=lang==='en'?'All':'Alle';
+  applyPrefs();
+
+  // Show loading while checking session
+  $('load-overlay').style.display='flex';
+  $('load-msg').textContent='Checking session…';
+
+  // Handle future auth events (magic link callback, sign-out)
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session&&!appInitialized){
+      currentUser=session.user;appInitialized=true;
+      await initApp();
+    }else if(event==='SIGNED_OUT'){
+      currentUser=null;appInitialized=false;Q=[];progressCache={};
+      showAuthOverlay();
+    }
+  });
+
+  // Check existing session
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    currentUser=session.user;appInitialized=true;
+    await initApp();
+  }else{
+    $('load-overlay').style.display='none';
+    showAuthOverlay();
+  }
 })();
 </script>
-</body></html>
+</body>
+</html>
