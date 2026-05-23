@@ -159,66 +159,100 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   html,body{height:100%;overflow:hidden}
   #app{max-width:100%;height:100vh;flex-direction:column;margin:0}
 
-  /* Single topbar — one identity across both panels */
+  /* Single topbar */
   #topbar{
     display:flex;align-items:center;gap:12px;flex-shrink:0;
-    background:var(--hdr);padding:0 24px;height:54px;
+    background:var(--hdr);padding:0 20px;height:52px;
     transition:background var(--tr);
   }
-  .tb-flag{display:inline-block;width:36px;height:26px;background:var(--red);border-radius:2px;position:relative;flex-shrink:0;filter:brightness(1.15)}
+  .tb-flag{display:inline-block;width:34px;height:24px;background:var(--red);border-radius:2px;position:relative;flex-shrink:0;filter:brightness(1.15)}
   .tb-flag::before{content:'';position:absolute;left:11px;top:0;width:5px;height:100%;background:#fff}
-  .tb-flag::after{content:'';position:absolute;left:0;top:10px;width:100%;height:5px;background:#fff}
+  .tb-flag::after{content:'';position:absolute;left:0;top:9px;width:100%;height:5px;background:#fff}
   .tb-title{font-family:'Libre Baskerville',serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:2px;line-height:1}
   .tb-sub{font-size:9px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,.55);text-transform:uppercase;margin-top:2px}
   .tb-streak{display:none;align-items:center;gap:5px;margin-left:12px;background:rgba(0,0,0,.18);padding:3px 10px;border-radius:20px}
   .tb-streak.on{display:flex}
   .tb-streak-txt{font-size:12px;color:#fff;font-weight:600}
 
-  /* Main area below topbar */
+  /* Main area */
   #main-area{display:flex;flex:1;min-height:0;overflow:hidden}
 
-  /* Left sidebar — navigation only, topbar owns branding */
+  /* ── ICON RAIL SIDEBAR ─────────────────────────────────────────────────── */
   #screen-home{
-    width:232px;min-width:232px;flex-shrink:0;
-    height:100%;overflow-y:auto;
+    width:60px;min-width:60px;flex:none;flex-shrink:0;
+    height:100%;overflow:hidden;
     border-right:1px solid var(--bdr);
     display:flex!important;flex-direction:column;
+    transition:width .22s cubic-bezier(.4,0,.2,1);
+    background:var(--bg);
   }
-  #screen-home .hdr{display:none}
-  #screen-home #streak-bar{display:none!important}
-  #screen-home #h-mastery-lbl{display:none!important}
-  #screen-home #mastery-grid{display:none!important}
-  #screen-home .scroll-body{padding-top:0}
-  #screen-home .pad{padding:12px 12px 20px}
-  #screen-home .lbl{font-size:10px;margin-bottom:8px}
-  #screen-home .chips{gap:5px}
-  #screen-home .chip{padding:4px 9px;font-size:11px}
-  #screen-home .mode-btn{padding:10px 11px;margin-bottom:5px;border-radius:11px}
-  #screen-home .mode-icon{font-size:16px}
-  #screen-home .mode-title{font-size:13px}
-  #screen-home .mode-desc{font-size:11px}
-  #screen-home .stats{gap:5px;margin-bottom:16px}
-  #screen-home .stat{padding:9px 6px}
-  #screen-home .stat-n{font-size:18px}
-  #screen-home .stat-l{font-size:10px}
-  #screen-home .info-card{display:none}
-  #screen-home #h-info-lbl{display:none}
+  #screen-home:hover{width:218px}
 
-  /* Right panel — content area */
+  /* Always hidden on desktop */
+  #screen-home .hdr,
+  #screen-home #streak-bar,
+  #screen-home #h-mastery-lbl,
+  #screen-home #mastery-grid,
+  #screen-home #h-info-lbl,
+  #screen-home .info-card{display:none}
+
+  /* Hidden when collapsed, visible when expanded */
+  #screen-home .mode-btn>div,
+  #screen-home .mode-arrow,
+  #screen-home #h-filter-lbl,
+  #screen-home .chips,
+  #screen-home #q-count-txt,
+  #screen-home #h-mode-lbl,
+  #screen-home .stat-l{display:none}
+
+  #screen-home:hover .mode-btn>div,
+  #screen-home:hover .mode-arrow{display:block}
+  #screen-home:hover #h-filter-lbl,
+  #screen-home:hover #q-count-txt,
+  #screen-home:hover #h-mode-lbl{display:block}
+  #screen-home:hover .chips{display:flex}
+  #screen-home:hover .stat-l{display:block}
+
+  /* Mode buttons — icon centred when collapsed */
+  #screen-home .mode-btn{
+    justify-content:center;padding:12px 0;
+    margin-bottom:2px;border-radius:8px;white-space:nowrap;
+  }
+  #screen-home:hover .mode-btn{
+    justify-content:flex-start;padding:9px 10px;margin-bottom:4px;
+  }
+  #screen-home .mode-icon{font-size:20px;flex-shrink:0}
+  #screen-home:hover .mode-icon{font-size:16px}
+  #screen-home:hover .mode-title{font-size:13px}
+  #screen-home:hover .mode-desc{font-size:11px}
+
+  /* Stats strip */
+  #screen-home .stats{flex-direction:column;gap:1px;margin-bottom:8px}
+  #screen-home:hover .stats{flex-direction:row;gap:4px}
+  #screen-home .stat{padding:5px 0;text-align:center;box-shadow:none;background:transparent}
+  #screen-home .stat-n{font-size:12px}
+  #screen-home:hover .stat{padding:8px 4px;background:var(--card);box-shadow:0 2px 8px var(--sh)}
+  #screen-home:hover .stat-n{font-size:16px}
+
+  #screen-home .pad{padding:8px 4px 16px}
+  #screen-home:hover .pad{padding:10px 10px 20px}
+  #screen-home .lbl{font-size:10px;letter-spacing:1.5px;margin-bottom:6px}
+
+  /* Right panel */
   #right-panel{display:flex;flex-direction:column;flex:1;min-width:0;height:100%;overflow:hidden}
   #right-panel .screen{flex:1;height:100%;overflow-y:auto}
 
   .back-link{display:none}
 
-  /* Content spacing in right panel */
-  .q-card{margin:24px 36px 0;max-width:640px}
-  .options{padding:14px 36px 0;max-width:640px}
-  .explanation{margin:14px 36px 28px;max-width:640px}
-  .exam-note{margin:14px 36px 0;max-width:640px}
-  .share-row{margin:16px 36px 0;max-width:640px}
+  /* Content spacing */
+  .q-card{margin:24px 36px 0;max-width:660px}
+  .options{padding:14px 36px 0;max-width:660px}
+  .explanation{margin:14px 36px 28px;max-width:660px}
+  .exam-note{margin:14px 36px 0;max-width:660px}
+  .share-row{margin:16px 36px 0;max-width:660px}
   #right-panel .pad{padding:28px 36px}
   .study-nav{padding:0 36px}
-  .card-scene{margin:0 36px;height:340px;max-width:640px}
+  .card-scene{margin:0 36px;height:340px;max-width:660px}
   .res-hdr{padding:40px 36px 28px}
   #screen-welcome .mastery-grid{grid-template-columns:repeat(4,1fr)}
 }
@@ -906,12 +940,14 @@ function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'
 
   // Check existing session
   const{data:{session}}=await sb.auth.getSession();
-  if(session){
-    currentUser=session.user;appInitialized=true;
-    await initApp();
-  }else{
-    $('load-overlay').style.display='none';
-    showAuthOverlay();
+  if(!appInitialized){
+    if(session){
+      currentUser=session.user;appInitialized=true;
+      await initApp();
+    }else{
+      $('load-overlay').style.display='none';
+      showAuthOverlay();
+    }
   }
 })();
 </script>
