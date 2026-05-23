@@ -223,8 +223,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   }
   #screen-home .mode-icon{font-size:20px;flex-shrink:0}
   #screen-home:hover .mode-icon{font-size:16px}
-  #screen-home:hover .mode-title{font-size:13px}
-  #screen-home:hover .mode-desc{font-size:11px}
+  #screen-home:hover .mode-title{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #screen-home .mode-desc,
+  #screen-home:hover .mode-desc{display:none}
 
   /* Stats strip */
   #screen-home .stats{flex-direction:column;gap:1px;margin-bottom:8px}
@@ -936,17 +937,37 @@ function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'
   $('load-overlay').style.display='flex';
   $('load-msg').textContent='Checking session…';
 
-  // Single auth handler — covers page load (INITIAL_SESSION), magic link (SIGNED_IN), sign-out
+  // Subsequent auth events only — magic link callback and sign-out
   sb.auth.onAuthStateChange(async(event,session)=>{
-    if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session&&!appInitialized){
+    if(event==='SIGNED_IN'&&session&&!appInitialized){
       currentUser=session.user;appInitialized=true;
       await initApp();
-    }else if(event==='SIGNED_OUT'||(event==='INITIAL_SESSION'&&!session)){
+    }else if(event==='TOKEN_REFRESHED'&&session&&!appInitialized){
+      currentUser=session.user;appInitialized=true;
+      await initApp();
+    }else if(event==='SIGNED_OUT'){
       currentUser=null;appInitialized=false;Q=[];progressCache={};
       $('load-overlay').style.display='none';
       showAuthOverlay();
     }
   });
+
+  // Primary page-load init — getSession always resolves, no race
+  try{
+    const{data:{session},error}=await sb.auth.getSession();
+    if(!appInitialized){
+      if(session&&!error){
+        currentUser=session.user;appInitialized=true;
+        await initApp();
+      }else{
+        $('load-overlay').style.display='none';
+        showAuthOverlay();
+      }
+    }
+  }catch(e){
+    $('load-overlay').style.display='none';
+    showAuthOverlay();
+  }
 })();
 </script>
 </body>
