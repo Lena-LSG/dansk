@@ -203,15 +203,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #screen-home .chips,
   #screen-home #q-count-txt,
   #screen-home #h-mode-lbl,
-  #screen-home .stat-l{display:none}
+  #screen-home .stat-l{
+    opacity:0;pointer-events:none;
+    transition:opacity .1s 0s;
+    white-space:nowrap;overflow:hidden;
+  }
 
   #screen-home:hover .mode-btn>div,
-  #screen-home:hover .mode-arrow{display:block}
+  #screen-home:hover .mode-arrow,
   #screen-home:hover #h-filter-lbl,
   #screen-home:hover #q-count-txt,
-  #screen-home:hover #h-mode-lbl{display:block}
-  #screen-home:hover .chips{display:flex}
-  #screen-home:hover .stat-l{display:block}
+  #screen-home:hover #h-mode-lbl,
+  #screen-home:hover .chips,
+  #screen-home:hover .stat-l{
+    opacity:1;pointer-events:auto;
+    transition:opacity .15s .12s;
+  }
 
   /* Mode buttons — icon centred when collapsed */
   #screen-home .mode-btn{
