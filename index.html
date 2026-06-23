@@ -1060,6 +1060,17 @@ function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'
     }
   }
 })();
+
+// Re-sync screen visibility on viewport resize (handles DevTools + orientation change)
+let _resizeTimer;
+window.addEventListener('resize',()=>{
+  clearTimeout(_resizeTimer);
+  _resizeTimer=setTimeout(()=>{
+    if(!appInitialized)return;
+    const active=document.querySelector('#right-panel .screen.active');
+    show(active?active.id:'screen-home');
+  },150);
+});
 </script>
 </body>
 </html>
