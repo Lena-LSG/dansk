@@ -712,7 +712,7 @@ async function initApp(){
   try{
     await loadQuestions();
     $('load-msg').textContent='Syncing progress…';
-    await loadProgress();
+    try{await loadProgress();}catch(e){console.warn('Progress sync failed (non-fatal):',e.message);}
     $('load-overlay').style.display='none';
     hideAuthOverlay();
     applyPrefs();
