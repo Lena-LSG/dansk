@@ -284,11 +284,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="auth-hs">Citizenship Test Prep</div>
       </div>
     </div>
-    <p class="auth-desc" id="auth-desc">Sign in to sync your progress across devices. No password needed.</p>
+    <p class="auth-desc" id="auth-desc">Sign in to sync your progress across devices.</p>
     <input class="auth-input" type="email" id="auth-email" placeholder="your@email.com"
-           onkeydown="if(event.key==='Enter')sendMagicLink()">
-    <button class="btn-primary" id="auth-btn" onclick="sendMagicLink()">Send Magic Link</button>
+           onkeydown="if(event.key==='Enter')$('auth-password').focus()">
+    <div style="position:relative">
+      <input class="auth-input" type="password" id="auth-password" placeholder="Password"
+             onkeydown="if(event.key==='Enter')handleAuth()" style="padding-right:44px">
+      <button onclick="togglePasswordVisibility()" id="pw-toggle"
+              style="position:absolute;right:12px;top:13px;background:none;border:none;cursor:pointer;color:var(--sub);font-size:16px;padding:0;line-height:1">👁</button>
+    </div>
+    <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Sign In</button>
     <p class="auth-msg" id="auth-msg"></p>
+    <p style="margin-top:14px;font-size:13px;color:var(--sub);text-align:center">
+      <span id="auth-toggle-txt">Don't have an account?</span>
+      <a href="#" id="auth-toggle-link" onclick="toggleAuthMode();return false"
+         style="color:var(--red);font-weight:600;text-decoration:none;margin-left:4px">Create account</a>
+    </p>
   </div>
 </div>
 
@@ -633,18 +644,55 @@ async function loadQuestions(){
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
-async function sendMagicLink(){
+let authMode='signin'; // 'signin' | 'signup'
+
+function toggleAuthMode(){
+  authMode=authMode==='signin'?'signup':'signin';
+  const up=authMode==='signup';
+  $('auth-desc').textContent=up?'Create your account to sync progress across devices.':'Sign in to sync your progress across devices.';
+  $('auth-btn').textContent=up?'Create Account':'Sign In';
+  $('auth-toggle-txt').textContent=up?'Already have an account?':"Don't have an account?";
+  $('auth-toggle-link').textContent=up?'Sign in':'Create account';
+  setAuthMsg('');
+}
+
+function togglePasswordVisibility(){
+  const pw=$('auth-password');
+  const show=pw.type==='password';
+  pw.type=show?'text':'password';
+  $('pw-toggle').textContent=show?'🙈':'👁';
+}
+
+async function handleAuth(){
   const email=$('auth-email').value.trim();
+  const password=$('auth-password').value;
   if(!email){setAuthMsg('Enter your email address.','err');return;}
-  $('auth-btn').disabled=true;$('auth-btn').textContent='Sending…';
-  const{error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
-  if(error){
-    setAuthMsg(error.message,'err');
-    $('auth-btn').disabled=false;$('auth-btn').textContent='Send Magic Link';
+  if(!password){setAuthMsg('Enter your password.','err');return;}
+  if(authMode==='signup'&&password.length<8){setAuthMsg('Password must be at least 8 characters.','err');return;}
+  const mode=authMode;
+  $('auth-btn').disabled=true;
+  $('auth-btn').textContent=mode==='signup'?'Creating…':'Signing in…';
+  if(mode==='signup'){
+    const{error}=await sb.auth.signUp({email,password});
+    if(error){
+      setAuthMsg(error.message,'err');
+      $('auth-btn').disabled=false;$('auth-btn').textContent='Create Account';
+    }else{
+      setAuthMsg('✓ Account created — check your email to confirm, then sign in.','ok');
+      $('auth-password').value='';
+      authMode='signin';
+      $('auth-desc').textContent='Sign in to sync your progress across devices.';
+      $('auth-btn').textContent='Sign In';$('auth-btn').disabled=false;
+      $('auth-toggle-txt').textContent="Don't have an account?";
+      $('auth-toggle-link').textContent='Create account';
+    }
   }else{
-    setAuthMsg('✓ Magic link sent — check your email and click the link.','ok');
-    $('auth-desc').textContent='Check your inbox for the sign-in link.';
-    $('auth-btn').textContent='Resend';$('auth-btn').disabled=false;
+    const{error}=await sb.auth.signInWithPassword({email,password});
+    if(error){
+      setAuthMsg(error.message,'err');
+      $('auth-btn').disabled=false;$('auth-btn').textContent='Sign In';
+    }
+    // success → onAuthStateChange fires and calls hideAuthOverlay()
   }
 }
 
