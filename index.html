@@ -544,7 +544,10 @@ function sm2(card, grade){
 async function loadProgress(){
   if(!currentUser){progressCache={};return;}
   try{
-    const{data,error}=await sb.from('progress').select('*').eq('user_id',currentUser.id);
+    const{data,error}=await withTimeout(
+      sb.from('progress').select('*').eq('user_id',currentUser.id),
+      20000
+    );
     if(!error&&data){
       progressCache={};
       data.forEach(r=>{
@@ -631,7 +634,10 @@ async function loadQuestions(){
     return;
   }
   // No cache — fetch fresh and block until done
-  const{data,error}=await sb.from('questions').select('*').order('id',{ascending:true});
+  const{data,error}=await withTimeout(
+    sb.from('questions').select('*').order('id',{ascending:true}),
+    30000
+  );
   if(error||!data)throw new Error('Could not load questions: '+(error?.message||'unknown'));
   Q=mapQuestions(data);
   sv(Q_CACHE,Q);
