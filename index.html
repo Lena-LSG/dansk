@@ -178,17 +178,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #main-area{display:flex;flex:1;min-height:0;overflow:hidden}
 
   /* ── ICON RAIL SIDEBAR ─────────────────────────────────────────────────── */
+  /* ── PERSISTENT SIDEBAR ────────────────────────────────────────────────── */
   #screen-home{
-    width:60px;min-width:60px;flex:none;flex-shrink:0;
-    height:100%;overflow:hidden;
+    width:252px;min-width:252px;flex:none;flex-shrink:0;
+    height:100%;overflow-y:auto;overflow-x:hidden;
     border-right:1px solid var(--bdr);
     display:flex!important;flex-direction:column;
-    transition:width .22s cubic-bezier(.4,0,.2,1);
     background:var(--bg);
   }
-  #screen-home:hover{width:252px}
 
-  /* Always hidden on desktop — !important overrides JS inline styles */
+  /* Always hidden on desktop */
   #screen-home .hdr,
   #screen-home #streak-bar,
   #screen-home #h-mastery-lbl,
@@ -196,7 +195,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #screen-home #h-info-lbl,
   #screen-home .info-card{display:none!important}
 
-  /* Hidden when collapsed, visible when expanded */
+  /* Always visible */
   #screen-home .mode-btn>div,
   #screen-home .mode-arrow,
   #screen-home #h-filter-lbl,
@@ -204,45 +203,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #screen-home #q-count-txt,
   #screen-home #h-mode-lbl,
   #screen-home .stat-l{
-    opacity:0;pointer-events:none;
-    transition:opacity .1s 0s;
-    white-space:nowrap;overflow:hidden;
+    opacity:1;pointer-events:auto;white-space:normal;overflow:visible;
   }
 
-  #screen-home:hover .mode-btn>div,
-  #screen-home:hover .mode-arrow,
-  #screen-home:hover #h-filter-lbl,
-  #screen-home:hover #q-count-txt,
-  #screen-home:hover #h-mode-lbl,
-  #screen-home:hover .chips,
-  #screen-home:hover .stat-l{
-    opacity:1;pointer-events:auto;
-    transition:opacity .15s .12s;
-  }
+  /* Mode buttons */
+  #screen-home .mode-btn{justify-content:flex-start;padding:9px 10px;margin-bottom:4px;border-radius:8px}
+  #screen-home .mode-icon{font-size:16px;flex-shrink:0}
+  #screen-home .mode-title{font-size:13px;font-weight:700}
+  #screen-home .mode-desc{font-size:11px;white-space:normal;line-height:1.3;margin-top:1px}
 
-  /* Mode buttons — icon centred when collapsed */
-  #screen-home .mode-btn{
-    justify-content:center;padding:12px 0;
-    margin-bottom:2px;border-radius:8px;
-  }
-  #screen-home:hover .mode-btn{
-    justify-content:flex-start;padding:9px 10px;margin-bottom:4px;
-  }
-  #screen-home .mode-icon{font-size:20px;flex-shrink:0}
-  #screen-home:hover .mode-icon{font-size:16px}
-  #screen-home:hover .mode-title{font-size:13px;font-weight:700}
-  #screen-home:hover .mode-desc{font-size:11px;white-space:normal;line-height:1.3;margin-top:1px}
-
-  /* Stats strip */
-  #screen-home .stats{flex-direction:column;gap:1px;margin-bottom:8px}
-  #screen-home:hover .stats{flex-direction:row;gap:4px}
-  #screen-home .stat{padding:5px 0;text-align:center;box-shadow:none;background:transparent}
-  #screen-home .stat-n{font-size:12px}
-  #screen-home:hover .stat{padding:8px 4px;background:var(--card);box-shadow:0 2px 8px var(--sh)}
-  #screen-home:hover .stat-n{font-size:16px}
-
-  #screen-home .pad{padding:8px 4px 16px}
-  #screen-home:hover .pad{padding:10px 10px 20px}
+  /* Stats */
+  #screen-home .stats{flex-direction:row;gap:4px;margin-bottom:8px}
+  #screen-home .stat{padding:8px 4px;background:var(--card);box-shadow:0 2px 8px var(--sh);text-align:center}
+  #screen-home .stat-n{font-size:16px}
+  #screen-home .pad{padding:10px 10px 20px}
   #screen-home .lbl{font-size:10px;letter-spacing:1.5px;margin-bottom:6px}
 
   /* Right panel */
@@ -265,10 +239,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .card-scene{margin:0 36px;height:340px;max-width:660px}
   .res-hdr{padding:40px 36px 28px}
 
-  /* Welcome dashboard — 2-col mastery grid, doesn't overflow */
-  #screen-welcome .mastery-grid{grid-template-columns:repeat(2,1fr);max-width:760px}
-  #screen-welcome .stats{max-width:760px}
-  #screen-welcome .info-card{max-width:760px}
+  /* Welcome dashboard — fills the right panel properly */
+  #screen-welcome .mastery-grid{grid-template-columns:repeat(3,1fr);max-width:none}
+  #screen-welcome .stats{max-width:none}
+  #screen-welcome .info-card{max-width:none}
 }
 </style>
 </head>
