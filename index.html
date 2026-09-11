@@ -711,7 +711,7 @@ function hideAuthOverlay(){$('auth-overlay').style.display='none';}
 
 async function signOut(){
   await sb.auth.signOut();
-  currentUser=null;appInitialized=false;Q=[];progressCache={};
+  currentUser=null;appInitialized=false;Q=[];progressCache={};historyCache=[];streakCache={streak:0,lastStudy:''};
   showAuthOverlay();
 }
 
@@ -722,6 +722,8 @@ async function initApp(){
     await loadQuestions();
     $('load-msg').textContent='Syncing progress…';
     try{await loadProgress();}catch(e){console.warn('Progress sync failed (non-fatal):',e.message);}
+    try{await loadHistory();}catch(e){console.warn('History sync failed (non-fatal):',e.message);}
+    try{await loadStreak();}catch(e){console.warn('Streak sync failed (non-fatal):',e.message);}
     $('load-overlay').style.display='none';
     hideAuthOverlay();
     applyPrefs();
@@ -735,18 +737,83 @@ async function initApp(){
   }
 }
 
-// ── STORAGE HELPERS (localStorage, non-synced) ────────────────────────────────
+// ── STORAGE HELPERS (localStorage cache, Supabase-synced) ─────────────────────
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch(e){return d;}};
-const getHistory=()=>ld('dk_history',[]);
-const addHistory=e=>{const h=getHistory();h.unshift(e);sv('dk_history',h.slice(0,50));};
-const checkStreak=()=>{
-  const today=new Date().toDateString(),last=ld('dk_lastStudy',''),streak=ld('dk_streak',0);
-  const yesterday=new Date(Date.now()-86400000).toDateString();
-  const ns=last===today?streak:last===yesterday?streak+1:1;
-  if(last!==today){sv('dk_streak',ns);sv('dk_lastStudy',today);}
+
+// ── HISTORY & STREAK (Supabase-synced, localStorage cache for offline) ────────
+let historyCache=[], streakCache={streak:0,lastStudy:''};
+
+async function loadHistory(){
+  historyCache=ld('dk_history',[]);
+  if(!currentUser)return;
+  try{
+    const{data,error}=await withTimeout(
+      sb.from('history').select('entry').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(50),
+      20000
+    );
+    if(!error&&data){historyCache=data.map(r=>r.entry);sv('dk_history',historyCache);}
+  }catch(e){console.warn('loadHistory failed, using cache:',e.message);}
+}
+
+async function loadStreak(){
+  streakCache={streak:ld('dk_streak',0),lastStudy:ld('dk_lastStudy','')};
+  if(!currentUser)return;
+  try{
+    const{data,error}=await withTimeout(
+      sb.from('streaks').select('streak,last_study').eq('user_id',currentUser.id).single(),
+      20000
+    );
+    if(!error&&data){
+      streakCache={streak:data.streak||0,lastStudy:data.last_study||''};
+      sv('dk_streak',streakCache.streak);sv('dk_lastStudy',streakCache.lastStudy);
+    }
+  }catch(e){console.warn('loadStreak failed, using cache:',e.message);}
+}
+
+const getHistory=()=>historyCache;
+
+function addHistory(entry){
+  const id=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(16).slice(2));
+  const createdAt=new Date().toISOString();
+  historyCache=[entry,...historyCache].slice(0,50);
+  sv('dk_history',historyCache);
+  if(currentUser){
+    sb.from('history').upsert({id,user_id:currentUser.id,entry,created_at:createdAt},{onConflict:'id'}).then(({error})=>{
+      if(error)console.warn('History sync:',error.message);
+    });
+  }
+}
+
+function clearHistory(){
+  const da=lang==='da';
+  if(!confirm(da?'Slet al historik?':'Clear all history?'))return;
+  historyCache=[];sv('dk_history',[]);
+  if(currentUser){
+    sb.from('history').delete().eq('user_id',currentUser.id).then(({error})=>{
+      if(error)console.warn('History clear sync:',error.message);
+    });
+  }
+  showHistory();
+}
+
+function checkStreak(){
+  // ISO dates (not toDateString()) so this compares consistently with the
+  // Android app, which now writes to the same streaks table.
+  const today=new Date().toISOString().slice(0,10);
+  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const{streak,lastStudy}=streakCache;
+  if(lastStudy===today)return streak;
+  const ns=lastStudy===yesterday?streak+1:1;
+  streakCache={streak:ns,lastStudy:today};
+  sv('dk_streak',ns);sv('dk_lastStudy',today);
+  if(currentUser){
+    sb.from('streaks').upsert({user_id:currentUser.id,streak:ns,last_study:today},{onConflict:'user_id'}).then(({error})=>{
+      if(error)console.warn('Streak sync:',error.message);
+    });
+  }
   return ns;
-};
+}
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b;};
@@ -1035,7 +1102,7 @@ function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'
       currentUser=session.user;appInitialized=true;
       await initApp();
     }else if(event==='SIGNED_OUT'){
-      currentUser=null;appInitialized=false;Q=[];progressCache={};
+      currentUser=null;appInitialized=false;Q=[];progressCache={};historyCache=[];streakCache={streak:0,lastStudy:''};
       $('load-overlay').style.display='none';
       showAuthOverlay();
     }
