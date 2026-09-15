@@ -1140,7 +1140,7 @@ function renderResults(){
   if(!viewingHistory)stopTimer();
   show('screen-results');
   const da=lang==='da',total=quizQs.length,pct=Math.round((quizScore/total)*100);
-  const passed=(mode==='mock'||mode==='exam')?(quizScore>=Math.ceil(total*.8)&&quizValScore>=4):(quizScore>=Math.ceil(total*.7));
+  const passed=(mode==='mock'||mode==='exam')?(quizScore>=Math.ceil(total*.8)&&quizValScore>=4):(quizScore>=Math.ceil(total*.8));
   if(!viewingHistory){
     // Lean per-question record (id, not the full question) so history stays
     // small and always reflects the current question content on lookup.
@@ -1176,7 +1176,7 @@ function openHistoryEntry(entry){
 }
 
 function shareResult(){
-  const da=lang==='da',q=quizQs.length,passed=(mode==='mock'||mode==='exam')?(quizScore>=Math.ceil(q*.8)&&quizValScore>=4):(quizScore>=Math.ceil(q*.7));
+  const da=lang==='da',q=quizQs.length,passed=(mode==='mock'||mode==='exam')?(quizScore>=Math.ceil(q*.8)&&quizValScore>=4):(quizScore>=Math.ceil(q*.8));
   const txt=da?`Jeg scorede ${quizScore}/${q} (${Math.round(quizScore/q*100)}%) på Indfødsretsprøven-mock! ${passed?'✅ Bestået!':'📚 Fortsætter øv.'} 🇩🇰`:`I scored ${quizScore}/${q} (${Math.round(quizScore/q*100)}%) on the Danish citizenship mock test! ${passed?'✅ Passed!':'📚 Keep practicing.'} 🇩🇰`;
   if(navigator.share){navigator.share({title:'DANSK Test Result',text:txt}).catch(()=>{});}
   else{navigator.clipboard.writeText(txt).then(()=>alert(da?'Kopieret til udklipsholder!':'Copied to clipboard!')).catch(()=>prompt(da?'Kopiér denne tekst:':'Copy this text:',txt));}
