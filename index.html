@@ -134,7 +134,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── AUTH OVERLAY ─────────────────────────────────────────────────────────── */
 .auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;align-items:center;justify-content:center;padding:24px}
-.auth-box{background:var(--card);border-radius:20px;padding:36px 28px;max-width:380px;width:100%;box-shadow:0 8px 40px var(--sh);text-align:center}
+.auth-box{position:relative;background:var(--card);border-radius:20px;padding:36px 28px;max-width:380px;width:100%;box-shadow:0 8px 40px var(--sh);text-align:center}
 .auth-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:20px}
 .auth-h{font-family:'Libre Baskerville',serif;font-size:30px;font-weight:700;color:var(--red);line-height:1}
 .auth-hs{font-size:10px;font-weight:600;letter-spacing:3px;color:rgba(200,16,46,.55);text-transform:uppercase;margin-top:4px}
@@ -286,6 +286,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- ── AUTH OVERLAY ──────────────────────────────────────────────────────── -->
 <div class="auth-overlay" id="auth-overlay">
   <div class="auth-box">
+    <button onclick="hideAuthOverlay()" id="auth-close" title="Close"
+            style="display:none;position:absolute;top:14px;right:14px;background:none;border:none;font-size:20px;line-height:1;cursor:pointer;color:var(--sub)">×</button>
     <div class="auth-logo">
       <div class="flag"></div>
       <div>
@@ -293,22 +295,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="auth-hs">Citizenship Test Prep</div>
       </div>
     </div>
-    <p class="auth-desc" id="auth-desc">Sign in to sync your progress across devices.</p>
-    <input class="auth-input" type="email" id="auth-email" placeholder="your@email.com"
-           onkeydown="if(event.key==='Enter')$('auth-password').focus()">
-    <div style="position:relative">
-      <input class="auth-input" type="password" id="auth-password" placeholder="Password"
-             onkeydown="if(event.key==='Enter')handleAuth()" style="padding-right:44px">
-      <button onclick="togglePasswordVisibility()" id="pw-toggle"
-              style="position:absolute;right:12px;top:13px;background:none;border:none;cursor:pointer;color:var(--sub);font-size:16px;padding:0;line-height:1">👁</button>
+
+    <div id="auth-form-state">
+      <p class="auth-desc" id="auth-desc">Sign in to sync your progress across devices.</p>
+      <input class="auth-input" type="email" id="auth-email" placeholder="your@email.com"
+             onkeydown="if(event.key==='Enter')$('auth-password').focus()">
+      <div style="position:relative">
+        <input class="auth-input" type="password" id="auth-password" placeholder="Password"
+               onkeydown="if(event.key==='Enter')handleAuth()" style="padding-right:44px">
+        <button onclick="togglePasswordVisibility()" id="pw-toggle"
+                style="position:absolute;right:12px;top:13px;background:none;border:none;cursor:pointer;color:var(--sub);font-size:16px;padding:0;line-height:1">👁</button>
+      </div>
+      <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Sign In</button>
+      <p class="auth-msg" id="auth-msg"></p>
+      <p style="margin-top:14px;font-size:13px;color:var(--sub);text-align:center">
+        <span id="auth-toggle-txt">Don't have an account?</span>
+        <a href="#" id="auth-toggle-link" onclick="toggleAuthMode();return false"
+           style="color:var(--red);font-weight:600;text-decoration:none;margin-left:4px">Create account</a>
+      </p>
     </div>
-    <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Sign In</button>
-    <p class="auth-msg" id="auth-msg"></p>
-    <p style="margin-top:14px;font-size:13px;color:var(--sub);text-align:center">
-      <span id="auth-toggle-txt">Don't have an account?</span>
-      <a href="#" id="auth-toggle-link" onclick="toggleAuthMode();return false"
-         style="color:var(--red);font-weight:600;text-decoration:none;margin-left:4px">Create account</a>
-    </p>
+
+    <div id="auth-signedin-state" style="display:none">
+      <p class="auth-desc" id="auth-signedin-lbl">Signed in as</p>
+      <div class="auth-input" id="auth-signedin-email" style="display:flex;align-items:center;justify-content:center;cursor:default">—</div>
+      <p class="auth-msg" id="auth-signedin-note" style="color:var(--sub)"></p>
+      <button class="btn-primary" id="auth-signout-btn" onclick="signOut()" style="background:var(--sub)">Sign Out</button>
+    </div>
   </div>
 </div>
 
@@ -329,7 +341,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="toggles">
     <button class="tbtn hs" id="lang-btn-tb" onclick="toggleLang()">🇩🇰 DA</button>
     <button class="tbtn hs" id="dark-btn-tb" onclick="toggleDark()">🌙</button>
-    <button class="tbtn hs" onclick="signOut()" style="font-size:11px" title="Sign out">↩</button>
+    <button class="tbtn hs" id="account-btn-tb" onclick="openAccountOverlay()" title="Account">👤</button>
   </div>
 </div>
 
@@ -348,7 +360,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="toggles">
         <button class="tbtn hs" id="lang-btn" onclick="toggleLang()">🇩🇰 DA</button>
         <button class="tbtn hs" id="dark-btn" onclick="toggleDark()">🌙</button>
-        <button class="tbtn hs" onclick="signOut()" style="font-size:11px" title="Sign out">↩</button>
+        <button class="tbtn hs" id="account-btn" onclick="openAccountOverlay()" title="Account">👤</button>
       </div>
     </div>
     <div class="hdr-desc" id="h-desc">Master the knowledge needed for the Indfødsretsprøven.</div>
@@ -364,8 +376,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div style="font-size:12px;color:var(--sub);margin-bottom:20px" id="q-count-txt"></div>
     <div class="lbl" id="h-mode-lbl">CHOOSE YOUR MODE</div>
     <button class="mode-btn" style="background:#C8102E" onclick="startQuiz('practice')"><span class="mode-icon">📝</span><div><div class="mode-title" id="m-practice">Practice Quiz</div><div class="mode-desc" id="m-practice-d">10 random questions</div></div><span class="mode-arrow">›</span></button>
-    <button class="mode-btn" style="background:#0033A0" onclick="startQuiz('mock')"><span class="mode-icon">🏆</span><div><div class="mode-title" id="m-mock">Full Mock Test</div><div class="mode-desc" id="m-mock-d">45 questions · real format</div></div><span class="mode-arrow">›</span></button>
-    <button class="mode-btn" style="background:#5B2D8E" onclick="startQuiz('exam')"><span class="mode-icon">⏱️</span><div><div class="mode-title" id="m-exam">Exam Simulator</div><div class="mode-desc" id="m-exam-d">45 min · no hints · real conditions</div></div><span class="mode-arrow">›</span></button>
+    <button class="mode-btn" style="background:#0033A0" onclick="startQuiz('mock')"><span class="mode-icon">🏆</span><div><div class="mode-title" id="m-mock">Full Mock Test</div><div class="mode-desc" id="m-mock-d">45 questions · untimed · with explanations</div></div><span class="mode-arrow">›</span></button>
+    <button class="mode-btn" style="background:#5B2D8E" onclick="startQuiz('exam')"><span class="mode-icon">⏱️</span><div><div class="mode-title" id="m-exam">Exam Simulator</div><div class="mode-desc" id="m-exam-d">45 min timed · no explanations</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" id="weak-btn" style="background:#00695C;display:none" onclick="startQuiz('weak')"><span class="mode-icon">🎯</span><div><div class="mode-title" id="m-weak">Weak Spots</div><div class="mode-desc" id="m-weak-d">SM-2 priority review</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" style="background:#1a1a2e" onclick="startStudy()"><span class="mode-icon">🃏</span><div><div class="mode-title" id="m-flash">Flashcards</div><div class="mode-desc" id="m-flash-d">Study all topics</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" style="background:#AD1457" onclick="showHistory()"><span class="mode-icon">📈</span><div><div class="mode-title" id="m-hist">History</div><div class="mode-desc" id="m-hist-d">Past results &amp; scores</div></div><span class="mode-arrow">›</span></button>
@@ -455,7 +467,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div id="review-list"></div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <button class="btn-primary" id="res-retry" onclick="retryQuiz()">Try Again</button>
-      <button class="btn-secondary" onclick="goHome()" id="res-home-btn">← Back to Home</button>
+      <button class="btn-secondary" id="res-home-btn">← Back to Home</button>
     </div>
   </div></div>
 </div>
@@ -533,9 +545,10 @@ const CATS_DA=["Alle","Historie","Regering","Geografi","Kultur","Rettigheder","V
 const CAT_KEYS=Object.keys(CAT_EN);
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let Q=[], progressCache={}, currentUser=null, appInitialized=false;
+let Q=[], progressCache={}, currentUser=null, appInitialized=false, _trackedUserId=null;
 let dark=false, lang="en", selCat="All";
 let mode="practice", quizQs=[], quizIdx=0, quizSel=null, quizScore=0, quizValScore=0, quizAnswers=[];
+let viewingHistory=false, lastHistoryList=[];
 let studyQs=[], studyIdx=0, cardFlipped=false;
 let timerInt=null, timerSecs=0;
 
@@ -598,7 +611,11 @@ function markAnswer(id,ok){
 function getWrongIds(){
   const now=Date.now();
   return Object.entries(progressCache)
-    .filter(([,c])=>c.wrong>0)
+    // wrong>0 is a lifetime counter and never resets, so it can't be the only
+    // condition or a question answered wrong once but since rescheduled would
+    // stay flagged forever. Gate on the SM-2 due date too, so a question just
+    // answered leaves the list until it's actually due for review again.
+    .filter(([,c])=>c.wrong>0&&c.due<=now)
     .map(([id,c])=>{
       const overdue=(now-(c.due||0))/86400000;
       const err=c.seen>0?c.wrong/c.seen:0;
@@ -655,13 +672,16 @@ async function loadQuestions(){
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 let authMode='signin'; // 'signin' | 'signup'
 
+function applyAuthModeLabels(){
+  const up=authMode==='signup',da=lang==='da';
+  $('auth-desc').textContent=up?(da?'Opret en konto for at synkronisere din fremgang på tværs af enheder.':'Create an account to sync your progress across devices.'):(da?'Log ind for at synkronisere din fremgang på tværs af enheder.':'Sign in to sync your progress across devices.');
+  $('auth-btn').textContent=up?(da?'Opret konto':'Create Account'):(da?'Log ind':'Sign In');
+  $('auth-toggle-txt').textContent=up?(da?'Har du allerede en konto?':'Already have an account?'):(da?'Har du ikke en konto?':"Don't have an account?");
+  $('auth-toggle-link').textContent=up?(da?'Log ind':'Sign in'):(da?'Opret konto':'Create account');
+}
 function toggleAuthMode(){
   authMode=authMode==='signin'?'signup':'signin';
-  const up=authMode==='signup';
-  $('auth-desc').textContent=up?'Create your account to sync progress across devices.':'Sign in to sync your progress across devices.';
-  $('auth-btn').textContent=up?'Create Account':'Sign In';
-  $('auth-toggle-txt').textContent=up?'Already have an account?':"Don't have an account?";
-  $('auth-toggle-link').textContent=up?'Sign in':'Create account';
+  applyAuthModeLabels();
   setAuthMsg('');
 }
 
@@ -681,19 +701,38 @@ async function handleAuth(){
   const mode=authMode;
   $('auth-btn').disabled=true;
   $('auth-btn').textContent=mode==='signup'?'Creating…':'Signing in…';
+  const da=lang==='da';
   if(mode==='signup'){
-    const{error}=await sb.auth.signUp({email,password});
-    if(error){
-      setAuthMsg(error.message,'err');
-      $('auth-btn').disabled=false;$('auth-btn').textContent='Create Account';
+    if(currentUser&&currentUser.is_anonymous){
+      // Upgrade the existing anonymous identity in place — same user id, so
+      // progress already synced under this device's anonymous session stays
+      // attached rather than being lost or requiring a merge.
+      const{data,error}=await sb.auth.updateUser({email,password});
+      if(error){
+        setAuthMsg(error.message,'err');
+        $('auth-btn').disabled=false;$('auth-btn').textContent=da?'Opret konto':'Create Account';
+      }else{
+        currentUser=data.user;
+        $('auth-password').value='';
+        $('auth-btn').disabled=false;
+        updateAccountButtons();
+        renderAccountOverlay();
+      }
     }else{
-      setAuthMsg('✓ Account created — check your email to confirm, then sign in.','ok');
-      $('auth-password').value='';
-      authMode='signin';
-      $('auth-desc').textContent='Sign in to sync your progress across devices.';
-      $('auth-btn').textContent='Sign In';$('auth-btn').disabled=false;
-      $('auth-toggle-txt').textContent="Don't have an account?";
-      $('auth-toggle-link').textContent='Create account';
+      // Fallback for the rare case there is no active session at all (e.g.
+      // the initial anonymous sign-in itself failed). Behaves like a normal,
+      // fresh registration.
+      const{error}=await sb.auth.signUp({email,password});
+      if(error){
+        setAuthMsg(error.message,'err');
+        $('auth-btn').disabled=false;$('auth-btn').textContent=da?'Opret konto':'Create Account';
+      }else{
+        setAuthMsg(da?'✓ Konto oprettet — tjek din e-mail for at bekræfte, log derefter ind.':'✓ Account created — check your email to confirm, then sign in.','ok');
+        $('auth-password').value='';
+        authMode='signin';
+        applyAuthModeLabels();
+        $('auth-btn').disabled=false;
+      }
     }
   }else{
     const{error}=await sb.auth.signInWithPassword({email,password});
@@ -706,13 +745,86 @@ async function handleAuth(){
 }
 
 function setAuthMsg(msg,cls=''){const el=$('auth-msg');el.textContent=msg;el.className='auth-msg '+cls;}
-function showAuthOverlay(){$('auth-overlay').style.display='flex';$('load-overlay').style.display='none';}
+
+// showAuthOverlay(): hard fallback shown only when even the anonymous session
+// could not be started (e.g. genuinely offline on first load) — nothing to
+// dismiss to, so no close button.
+function showAuthOverlay(){
+  $('auth-form-state').style.display='block';$('auth-signedin-state').style.display='none';
+  $('auth-close').style.display='none';
+  authMode='signin';applyAuthModeLabels();
+  $('auth-overlay').style.display='flex';$('load-overlay').style.display='none';
+}
 function hideAuthOverlay(){$('auth-overlay').style.display='none';}
 
+// openAccountOverlay(): the on-demand Account panel, reached from the header
+// once the app is already usable (anonymous or registered). Dismissible.
+function renderAccountOverlay(){
+  const da=lang==='da';
+  const registered=currentUser&&!currentUser.is_anonymous&&currentUser.email;
+  const pending=currentUser&&currentUser.is_anonymous&&currentUser.new_email&&!currentUser.email;
+  if(registered){
+    $('auth-form-state').style.display='none';
+    $('auth-signedin-state').style.display='block';
+    $('auth-signedin-lbl').textContent=da?'Logget ind som':'Signed in as';
+    $('auth-signedin-email').textContent=currentUser.email;
+    $('auth-signedin-note').textContent=da?'Din fremgang synkroniseres på tværs af enheder.':'Your progress syncs across devices.';
+    $('auth-signout-btn').style.display='block';
+    $('auth-signout-btn').textContent=da?'Log ud':'Sign Out';
+  }else if(pending){
+    $('auth-form-state').style.display='none';
+    $('auth-signedin-state').style.display='block';
+    $('auth-signedin-lbl').textContent=da?'Bekræft din konto':'Confirm your account';
+    $('auth-signedin-email').textContent=currentUser.new_email;
+    $('auth-signedin-note').textContent=da?'Tjek din e-mail for at bekræfte kontoen.':'Check your email to confirm this account.';
+    $('auth-signout-btn').style.display='none';
+  }else{
+    $('auth-signedin-state').style.display='none';
+    $('auth-form-state').style.display='block';
+    authMode='signup'; // anonymous users are prompted to create an account by default
+    applyAuthModeLabels();
+    setAuthMsg('');
+    $('auth-email').value='';$('auth-password').value='';
+  }
+}
+function openAccountOverlay(){
+  renderAccountOverlay();
+  $('auth-close').style.display='block';
+  $('load-overlay').style.display='none';
+  $('auth-overlay').style.display='flex';
+}
+function updateAccountButtons(){
+  const icon=(currentUser&&!currentUser.is_anonymous&&currentUser.email)?'✅':'👤';
+  const tb=$('account-btn-tb'),hb=$('account-btn');
+  if(tb)tb.textContent=icon;
+  if(hb)hb.textContent=icon;
+}
+
 async function signOut(){
+  hideAuthOverlay();
+  $('load-overlay').style.display='flex';
+  $('load-msg').textContent=lang==='da'?'Logger ud…':'Signing out…';
   await sb.auth.signOut();
-  currentUser=null;appInitialized=false;Q=[];progressCache={};historyCache=[];streakCache={streak:0,lastStudy:''};
-  showAuthOverlay();
+  // State reset and starting a fresh anonymous session are handled by the
+  // SIGNED_OUT branch of the onAuthStateChange listener below, so this
+  // doesn't duplicate that logic.
+}
+
+// Every device starts anonymous so the app is fully usable, including sync,
+// before an account exists. Used on first load, and again after signing out.
+async function startAnonymousSession(){
+  try{
+    const{data,error}=await withTimeout(sb.auth.signInAnonymously(),10000);
+    if(error)throw error;
+    if(!appInitialized){
+      currentUser=data.user;appInitialized=true;_trackedUserId=data.user.id;
+      await initApp();
+    }
+  }catch(e){
+    console.warn('Anonymous sign-in failed:',e.message);
+    $('load-overlay').style.display='none';
+    showAuthOverlay();
+  }
 }
 
 async function initApp(){
@@ -726,6 +838,7 @@ async function initApp(){
     try{await loadStreak();}catch(e){console.warn('Streak sync failed (non-fatal):',e.message);}
     $('load-overlay').style.display='none';
     hideAuthOverlay();
+    updateAccountButtons();
     applyPrefs();
     renderHome();
     if(isDesktop())show('screen-welcome');
@@ -853,8 +966,8 @@ function renderHome(){
   $('h-filter-lbl').textContent=da?'FILTRER EFTER EMNE':'FILTER BY TOPIC';
   $('h-mode-lbl').textContent=da?'VÆLG DIN TILSTAND':'CHOOSE YOUR MODE';
   $('m-practice').textContent=da?'Øvequiz':'Practice Quiz';$('m-practice-d').textContent=da?'10 tilfældige spørgsmål':'10 random questions';
-  $('m-mock').textContent=da?'Fuld Prøveeksamen':'Full Mock Test';$('m-mock-d').textContent=da?'45 spørgsmål · rigtig format':'45 questions · real format';
-  $('m-exam').textContent=da?'Eksamenssimulator':'Exam Simulator';$('m-exam-d').textContent=da?'45 min · ingen hints · rigtige betingelser':'45 min · no hints · real conditions';
+  $('m-mock').textContent=da?'Fuld Prøveeksamen':'Full Mock Test';$('m-mock-d').textContent=da?'45 spørgsmål · ikke tidsbegrænset · med forklaringer':'45 questions · untimed · with explanations';
+  $('m-exam').textContent=da?'Eksamenssimulator':'Exam Simulator';$('m-exam-d').textContent=da?'45 min · tidsbegrænset · ingen forklaringer':'45 min timed · no explanations';
   $('m-weak').textContent=da?'Svage Punkter':'Weak Spots';$('m-weak-d').textContent=da?'SM-2 prioriteret gennemgang':'SM-2 priority review';
   $('m-flash').textContent=da?'Flashkort':'Flashcards';$('m-flash-d').textContent=da?'Gennemgå alle emner':'Study all topics';
   $('m-hist').textContent=da?'Historik':'History';$('m-hist-d').textContent=da?'Tidligere resultater':'Past results & scores';
@@ -949,7 +1062,7 @@ function renderWelcome(){
 // ── QUIZ ──────────────────────────────────────────────────────────────────────
 function startQuiz(m){
   if(!Q.length)return;
-  mode=m;stopTimer();
+  mode=m;stopTimer();viewingHistory=false;
   const da=lang==='da';
   if(m==='mock'||m==='exam'){
     const c=shuffle(Q.filter(q=>q.type==='cur')).slice(0,35);
@@ -1019,11 +1132,19 @@ function nextQuestion(){$('exam-note').innerHTML='';if(quizIdx+1>=quizQs.length)
 function retryQuiz(){startQuiz(mode);}
 
 // ── RESULTS ───────────────────────────────────────────────────────────────────
+// viewingHistory is set by openHistoryEntry() to reuse this screen for a past
+// attempt without recording a new history entry or re-arming the exam timer.
 function renderResults(){
-  stopTimer();show('screen-results');
+  if(!viewingHistory)stopTimer();
+  show('screen-results');
   const da=lang==='da',total=quizQs.length,pct=Math.round((quizScore/total)*100);
   const passed=(mode==='mock'||mode==='exam')?(quizScore>=Math.ceil(total*.8)&&quizValScore>=4):(quizScore>=Math.ceil(total*.7));
-  addHistory({mode,score:quizScore,total,pct,val:quizValScore,passed,date:new Date().toLocaleDateString(da?'da-DK':'en-GB'),ts:Date.now()});
+  if(!viewingHistory){
+    // Lean per-question record (id, not the full question) so history stays
+    // small and always reflects the current question content on lookup.
+    const answerIds=quizAnswers.map(({q,chosen,ok})=>({id:q.id,chosen,ok}));
+    addHistory({mode,score:quizScore,total,pct,val:quizValScore,passed,date:new Date().toLocaleDateString(da?'da-DK':'en-GB'),ts:Date.now(),answers:answerIds});
+  }
   $('res-hdr').style.background=passed?'#C8102E':'#1a2a4a';
   $('res-emoji').textContent=passed?'🎉':'📚';
   $('res-title').textContent=passed?(da?'Bestået! 🎉':'Passed! 🎉'):(da?'Fortsæt øv! 📚':'Keep Practicing!');
@@ -1032,8 +1153,24 @@ function renderResults(){
   if(mode==='mock'||mode==='exam'){$('res-val').style.display='block';$('res-val').textContent=`${da?'Værdier:':'Values:'} ${quizValScore}/5`;$('res-note').style.display='block';$('res-note').textContent=da?`Score ${quizScore}/${total} · Værdier ${quizValScore}/5 (kræver 4/5)`:`Score ${quizScore}/${total} · Values ${quizValScore}/5 (need 4/5)`;}
   else{$('res-val').style.display='none';$('res-note').style.display='none';}
   $('res-review-lbl').textContent=da?'GENNEMGANG AF SPØRGSMÅL':'QUESTION REVIEW';
-  $('res-retry').textContent=da?'Prøv igen':'Try Again';$('res-home-btn').textContent=da?'← Tilbage til forsiden':'← Back to Home';
+  $('res-retry').textContent=da?'Prøv igen':'Try Again';
+  $('res-home-btn').textContent=viewingHistory?(da?'← Tilbage til historik':'← Back to History'):(da?'← Tilbage til forsiden':'← Back to Home');
+  $('res-home-btn').onclick=()=>{viewingHistory?showHistory():goHome();};
   $('review-list').innerHTML=quizAnswers.map(({q,chosen,ok})=>`<div class="review-item" style="border-left-color:${ok?'#2E7D32':'#C8102E'}"><div class="review-q">${q[lang][0]}</div><div class="review-tags">${!ok?`<span class="rtag w">${da?'Du: ':'You: '}${q[lang][1][chosen]}</span>`:''}<span class="rtag r">✓ ${q[lang][1][q[lang][2]]}</span></div></div>`).join('');
+}
+
+// Reconstruct {q, chosen, ok} from a history entry's lean {id, chosen, ok}
+// records by looking questions up in the current bank. Entries saved before
+// this feature existed have no `answers` and silently do nothing.
+function openHistoryEntry(entry){
+  if(!entry.answers||!entry.answers.length)return;
+  const resolved=entry.answers
+    .map(a=>({q:Q.find(qq=>qq.id===a.id),chosen:a.chosen,ok:a.ok}))
+    .filter(a=>a.q);
+  if(!resolved.length)return;
+  mode=entry.mode;quizQs=resolved.map(a=>a.q);quizScore=entry.score;quizValScore=entry.val;quizAnswers=resolved;
+  viewingHistory=true;
+  renderResults();
 }
 
 function shareResult(){
@@ -1083,12 +1220,14 @@ function showHistory(){
   $('hist-title').textContent=da?'Historik':'History';
   $('clear-btn').textContent=da?'Ryd':'Clear';
   const h=getHistory();
+  lastHistoryList=h;
   const mLabels={practice:da?'Øvequiz':'Practice',mock:da?'Prøveeksamen':'Mock Test',exam:da?'Eksamen':'Exam Simulator',weak:da?'Svage Punkter':'Weak Spots'};
   if(!h.length){$('hist-list').innerHTML=`<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-txt">${da?'Ingen historik endnu':'No history yet'}</div><div class="empty-sub">${da?'Gennemfør en quiz for at se dine resultater her.':'Complete a quiz to see your results here.'}</div></div>`;return;}
-  $('hist-list').innerHTML=h.map(e=>{const passed=e.passed,col=passed?'#2E7D32':'#C8102E';return`<div class="hist-item"><span class="hist-score" style="color:${col}">${e.score}/${e.total}</span><div class="hist-meta"><div class="hist-mode">${mLabels[e.mode]||e.mode}</div><div class="hist-date">${e.date} · ${e.pct}%${e.mode==='mock'||e.mode==='exam'?` · ${da?'Værdier':'Values'}: ${e.val}/5`:''}</div></div><span class="hist-badge" style="background:${passed?'#E8F5E9':'#FFEBEE'};color:${col}">${passed?(da?'Bestået':'Pass'):(da?'Ikke bestået':'Fail')}</span></div>`;}).join('');
+  $('hist-list').innerHTML=h.map((e,i)=>{
+    const passed=e.passed,col=passed?'#2E7D32':'#C8102E',hasDetail=e.answers&&e.answers.length>0;
+    return`<div class="hist-item"${hasDetail?` style="cursor:pointer" onclick="openHistoryEntry(lastHistoryList[${i}])"`:''}><span class="hist-score" style="color:${col}">${e.score}/${e.total}</span><div class="hist-meta"><div class="hist-mode">${mLabels[e.mode]||e.mode}</div><div class="hist-date">${e.date} · ${e.pct}%${e.mode==='mock'||e.mode==='exam'?` · ${da?'Værdier':'Values'}: ${e.val}/5`:''}</div></div><span class="hist-badge" style="background:${passed?'#E8F5E9':'#FFEBEE'};color:${col}">${passed?(da?'Bestået':'Pass'):(da?'Ikke bestået':'Fail')}</span>${hasDetail?'<span style="color:var(--sub);font-size:18px;margin-left:4px">›</span>':''}</div>`;
+  }).join('');
 }
-function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'Clear all history?')){sv('dk_history',[]);showHistory();}}
-
 // ── INIT ──────────────────────────────────────────────────────────────────────
 (async function init(){
   dark=ld('dk_dark',false);lang=ld('dk_lang','en');selCat=lang==='en'?'All':'Alle';
@@ -1096,15 +1235,28 @@ function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'
   $('load-overlay').style.display='flex';
   $('load-msg').textContent='Checking session…';
 
-  // Subsequent auth events — magic link, token refresh, sign-out, and INITIAL_SESSION fallback
+  // Subsequent auth events — magic link, token refresh, sign-out, sign-in to
+  // a different identity mid-session, and INITIAL_SESSION fallback.
   sb.auth.onAuthStateChange(async(event,session)=>{
+    const newId=session?.user?.id||null;
     if(session&&!appInitialized&&['SIGNED_IN','TOKEN_REFRESHED','INITIAL_SESSION'].includes(event)){
-      currentUser=session.user;appInitialized=true;
+      currentUser=session.user;appInitialized=true;_trackedUserId=newId;
       await initApp();
     }else if(event==='SIGNED_OUT'){
-      currentUser=null;appInitialized=false;Q=[];progressCache={};historyCache=[];streakCache={streak:0,lastStudy:''};
-      $('load-overlay').style.display='none';
-      showAuthOverlay();
+      currentUser=null;appInitialized=false;_trackedUserId=null;Q=[];progressCache={};historyCache=[];streakCache={streak:0,lastStudy:''};
+      await startAnonymousSession();
+    }else if(appInitialized&&newId&&newId!==_trackedUserId){
+      // Identity changed mid-session: the anonymous session was upgraded to
+      // sign in as an existing, different account, or the user switched
+      // accounts. That account's data is not what's currently loaded, so
+      // reload from scratch rather than merging (mirrors the mobile app:
+      // signing into an existing account replaces local state, it doesn't
+      // blend it with whatever an unauthenticated session accumulated).
+      currentUser=session.user;_trackedUserId=newId;
+      Q=[];progressCache={};historyCache=[];streakCache={streak:0,lastStudy:''};
+      await initApp();
+    }else if(session){
+      currentUser=session.user; // keep currentUser fresh (e.g. token refresh), same identity
     }
   });
 
@@ -1113,18 +1265,14 @@ function clearHistory(){const da=lang==='da';if(confirm(da?'Slet al historik?':'
     const{data:{session},error}=await withTimeout(sb.auth.getSession(),10000);
     if(!appInitialized){
       if(session&&!error){
-        currentUser=session.user;appInitialized=true;
+        currentUser=session.user;appInitialized=true;_trackedUserId=session.user.id;
         await initApp();
       }else{
-        $('load-overlay').style.display='none';
-        showAuthOverlay();
+        await startAnonymousSession();
       }
     }
   }catch(e){
-    if(!appInitialized){
-      $('load-overlay').style.display='none';
-      showAuthOverlay();
-    }
+    if(!appInitialized)await startAnonymousSession();
   }
 })();
 
