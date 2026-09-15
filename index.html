@@ -375,6 +375,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="chips" id="chips"></div>
     <div style="font-size:12px;color:var(--sub);margin-bottom:20px" id="q-count-txt"></div>
     <div class="lbl" id="h-mode-lbl">CHOOSE YOUR MODE</div>
+    <div style="font-size:11px;line-height:15px;color:var(--sub);margin-top:-8px;margin-bottom:12px" id="mode-filter-note">The topic filter only applies to Practice Quiz and Flashcards. Mock Test, Exam Simulator and Weak Spots always cover all topics.</div>
     <button class="mode-btn" style="background:#C8102E" onclick="startQuiz('practice')"><span class="mode-icon">📝</span><div><div class="mode-title" id="m-practice">Practice Quiz</div><div class="mode-desc" id="m-practice-d">10 random questions</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" style="background:#0033A0" onclick="startQuiz('mock')"><span class="mode-icon">🏆</span><div><div class="mode-title" id="m-mock">Full Mock Test</div><div class="mode-desc" id="m-mock-d">45 questions · untimed · with explanations</div></div><span class="mode-arrow">›</span></button>
     <button class="mode-btn" style="background:#5B2D8E" onclick="startQuiz('exam')"><span class="mode-icon">⏱️</span><div><div class="mode-title" id="m-exam">Exam Simulator</div><div class="mode-desc" id="m-exam-d">45 min timed · no explanations</div></div><span class="mode-arrow">›</span></button>
@@ -965,6 +966,7 @@ function renderHome(){
   $('h-desc').textContent=da?'Mester den viden, der kræves til Indfødsretsprøven.':'Master the knowledge needed for the Indfødsretsprøven.';
   $('h-filter-lbl').textContent=da?'FILTRER EFTER EMNE':'FILTER BY TOPIC';
   $('h-mode-lbl').textContent=da?'VÆLG DIN TILSTAND':'CHOOSE YOUR MODE';
+  $('mode-filter-note').textContent=da?'Emnefilteret gælder kun for Øvequiz og Flashkort. Prøveeksamen, eksamenssimulator og svage punkter dækker altid alle emner.':'The topic filter only applies to Practice Quiz and Flashcards. Mock Test, Exam Simulator and Weak Spots always cover all topics.';
   $('m-practice').textContent=da?'Øvequiz':'Practice Quiz';$('m-practice-d').textContent=da?'10 tilfældige spørgsmål':'10 random questions';
   $('m-mock').textContent=da?'Fuld Prøveeksamen':'Full Mock Test';$('m-mock-d').textContent=da?'45 spørgsmål · ikke tidsbegrænset · med forklaringer':'45 questions · untimed · with explanations';
   $('m-exam').textContent=da?'Eksamenssimulator':'Exam Simulator';$('m-exam-d').textContent=da?'45 min · tidsbegrænset · ingen forklaringer':'45 min timed · no explanations';
