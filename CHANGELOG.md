@@ -10,6 +10,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Repository governance documentation: `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, and GitHub issue/pull request templates.
 
+## 2026-09-15
+
+### Added
+
+- Anonymous-first authentication, matching the mobile app: every session starts signed in anonymously so the app is fully usable, including sync, before an account exists. Signing up upgrades the anonymous identity in place (same user id), so progress made before registering is not lost. The previous mandatory login wall is now an on-demand Account panel reached from the header.
+- Per-question history detail view, reusing the results screen to show a past attempt's individual answers.
+
+### Fixed
+
+- Weak Spots now gates on the SM-2 due date, not just the lifetime wrong-answer count, so a question drops off the list once it is actually rescheduled rather than staying flagged indefinitely.
+- Removed a stale duplicate `clearHistory()` left over from before the Supabase sync work, which silently shadowed the real implementation — clicking "Clear" did not touch Supabase or the in-memory cache, so cleared history reappeared on the next load.
+- Clarified Mock Test vs Exam Simulator descriptions (untimed with explanations vs timed without), matching mobile.
+
 ## 2026-09-11
 
 ### Added
